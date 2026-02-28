@@ -1,0 +1,7 @@
+comparison_target: test_invalid
+reader: parquet
+columns:
+  fuzzy:
+  - name: interest_accrued
+    tolerance_type: absolute
+    reason: Rounding variance

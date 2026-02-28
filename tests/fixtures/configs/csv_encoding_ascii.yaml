@@ -1,0 +1,6 @@
+comparison_target: test_csv_encoding_ascii
+reader: csv
+csv:
+  header_rows: 1
+  trailer_rows: 0
+encoding: ascii

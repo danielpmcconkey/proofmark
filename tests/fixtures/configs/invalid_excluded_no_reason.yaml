@@ -1,0 +1,5 @@
+comparison_target: test_invalid
+reader: parquet
+columns:
+  excluded:
+  - name: run_id

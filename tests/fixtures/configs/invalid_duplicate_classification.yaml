@@ -1,0 +1,11 @@
+comparison_target: test_invalid
+reader: parquet
+columns:
+  excluded:
+  - name: balance
+    reason: Non-deterministic
+  fuzzy:
+  - name: balance
+    tolerance: 0.01
+    tolerance_type: absolute
+    reason: Rounding

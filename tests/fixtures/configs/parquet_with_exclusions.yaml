@@ -1,0 +1,6 @@
+comparison_target: test_parquet_exclusions
+reader: parquet
+columns:
+  excluded:
+  - name: run_id
+    reason: Non-deterministic UUID assigned at runtime

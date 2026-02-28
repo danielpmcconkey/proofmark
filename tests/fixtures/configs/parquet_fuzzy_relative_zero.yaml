@@ -1,0 +1,8 @@
+comparison_target: test_fuzzy_zero
+reader: parquet
+columns:
+  fuzzy:
+  - name: delta
+    tolerance: 0.01
+    tolerance_type: relative
+    reason: Zero edge case

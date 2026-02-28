@@ -1,0 +1,8 @@
+comparison_target: test_parquet_fuzzy_relative
+reader: parquet
+columns:
+  fuzzy:
+  - name: market_value
+    tolerance: 0.001
+    tolerance_type: relative
+    reason: Scales with magnitude

@@ -1,0 +1,11 @@
+comparison_target: test_mixed
+reader: parquet
+columns:
+  excluded:
+  - name: run_id
+    reason: Non-deterministic UUID
+  fuzzy:
+  - name: interest_accrued
+    tolerance: 0.01
+    tolerance_type: absolute
+    reason: Rounding variance
