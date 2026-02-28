@@ -237,6 +237,8 @@ class HashGroupResult:
 
 @dataclass
 class DiffResult:
+    """Mutable by design — built incrementally as the diff engine iterates hash groups.
+    Not frozen because fields are accumulated during processing, not set at construction."""
     hash_groups: list[HashGroupResult]   # Groups with issues only [BR-11.20]
     all_unmatched_lhs: list[UnmatchedRow]
     all_unmatched_rhs: list[UnmatchedRow]
@@ -395,6 +397,8 @@ class ConfigError(Exception):
 
 **FSD-5.2.14 [BR-6.6–8]:** Config does NOT contain file paths. The CLI provides `--left` and `--right`. This separation is critical — same config for Tuesday's run and Wednesday's run. If config changes mid-window, go back to start date and re-run all [BR-6.8].
 
+**FSD-5.2.15:** Known MVP limitation — column name validation: config column names (in `excluded` and `fuzzy` lists) are NOT validated against actual data column names at config load time. If a config references a column that doesn't exist in the data, the hasher will simply never encounter it — EXCLUDED columns won't be found to exclude, FUZZY columns won't have values to check. This is silent, not an error. Vendor build should add a warning or error for config columns absent from the schema.
+
 **Reference YAML schema (from BRD):**
 ```yaml
 comparison_target: daily_balance_feed
@@ -476,6 +480,8 @@ class ParquetReader(BaseReader):
 7. **FSD-5.3.9:** Return `ReaderResult` with `header_lines=None`, `trailer_lines=None`, `line_break_style=None`.
 
 **FSD-5.3.10 [BR-3.16]:** Part file assembly: 3 part files with 100 rows each must compare identically to 1 part file with 300 rows. Guaranteed by the concat-then-compare approach — the pipeline never sees part file boundaries.
+
+**FSD-5.3.10a:** Schema consistency across part files: `pyarrow.concat_tables()` raises `ArrowInvalid` if part files have incompatible schemas (different column names, different types). This is caught and wrapped as `ReaderError` (exit 2). The error message should identify the conflicting part file names and the schema difference.
 
 #### 5.3.3 CSV Reader — `readers/csv_reader.py`
 
@@ -593,7 +599,7 @@ def hash_rows(
    - **FSD-5.5.5 [BR-8.2]:** CSV values: used as-is (they're already strings). No null normalization.
 4. **FSD-5.5.6 [BR-4.16]:** Hash input: concatenate STRICT column string values in schema order, separated by `\x00` (null byte). This separator prevents collision between values like `["ab", "c"]` and `["a", "bc"]`.
 5. **FSD-5.5.7 [BR-10.1]:** Compute hash: `hashlib.md5(hash_input.encode("utf-8")).hexdigest()`.
-6. **FSD-5.5.8 [BR-4.15]:** Unhashed content: concatenate ALL non-excluded column string values in schema order, separated by `|` (pipe). This is for human-readable report output. The pipe separator is for display only.
+6. **FSD-5.5.8 [BR-4.15]:** Unhashed content: concatenate ALL non-excluded column string values in schema order, separated by `|` (pipe). This is for human-readable report output. The pipe separator is for display only. Known MVP limitation: if data values contain literal `|` characters, the unhashed content string becomes ambiguous for human readers. This does not affect correctness — hashing uses `\x00` separator (FSD-5.5.6), and the correlator uses `row_data` dict values (FSD-5.8.3), not unhashed content.
 7. **FSD-5.5.9:** Extract FUZZY values: `{col_name: original_value for col_name in fuzzy_columns}`.
 8. **FSD-5.5.10:** Build `HashedRow` with `hash_key`, `unhashed_content`, `fuzzy_values`, `row_data` (all non-excluded columns).
 
@@ -632,7 +638,7 @@ def diff(
    - **FSD-5.6.4 [BR-4.19, BR-4.20]:** Status: `"MATCH"` if `lhs_count == rhs_count`, else `"COUNT_MISMATCH"`.
    - **FSD-5.6.5 [BR-4.20]:** Surplus rows: if `lhs_count > rhs_count` → last `(lhs_count - rhs_count)` LHS rows are surplus (as `UnmatchedRow`, side=`"lhs"`). Vice versa for RHS surplus.
    - **FSD-5.6.6 [BR-4.21]:** FUZZY validation: if `matched_count > 0` and `len(fuzzy_columns) > 0`:
-     - **FSD-5.6.7:** Sort both sides' first `matched_count` rows by their FUZZY values (lexicographic on `tuple(str(row.fuzzy_values[col.name]) for col in fuzzy_columns)`) for deterministic pairing. Ties broken by `unhashed_content`.
+     - **FSD-5.6.7:** Sort both sides' first `matched_count` rows for deterministic pairing. Sort key: `(tuple(row.fuzzy_values[col.name] for col in fuzzy_columns), row.unhashed_content)`. The sort exists solely for determinism — any consistent ordering that pairs the same rows on repeated runs is acceptable. The specific comparator is an implementation detail; the requirement is that identical inputs always produce identical pairings.
      - Pair row-by-row: `lhs_list[i]` with `rhs_list[i]` for `i` in `0..matched_count-1`.
      - For each pair, call `tolerance.check_fuzzy()` on each FUZZY column.
      - Collect any `FuzzyFailure` results.
@@ -709,6 +715,11 @@ passes = delta / denominator <= tolerance
 
 **FSD-5.7.7 [BR-7.8]:** No "percentage" type. Relative tolerance of `0.01` IS 1%. No ambiguity.
 
+**FSD-5.7.8 [BR-8.1, BR-8.4]:** Null handling in FUZZY columns (parquet only):
+- Null vs null: **match**. Skip tolerance check — both sides agree on null. `actual_delta` not computed.
+- Null vs non-null (either direction): **FUZZY failure**. Report `actual_delta` as the absolute value of the non-null side. This is not an exit-2 error — it's a legitimate data difference reported through the normal FUZZY failure path.
+- CSV: not applicable. CSV has no native null concept [BR-8.2]. Empty fields, `"NULL"`, etc. are strings and go through `float()` conversion per FSD-5.7.5.
+
 ---
 
 ### 5.8 Mismatch Correlator — `correlator.py`
@@ -744,6 +755,8 @@ def correlate(
 **FSD-5.8.6:** Confidence threshold: > 50% of non-excluded columns matching = "high" confidence. Deterministic, conservative heuristic for common cases. Full fuzzy matching is vendor-build territory [BR-11.12].
 
 **FSD-5.8.7:** Complexity: O(L × R × C) where L = unmatched LHS count, R = unmatched RHS count, C = column count. Acceptable for MVP volumes.
+
+**FSD-5.8.8:** Known MVP limitation — FUZZY column comparison: the correlator uses exact equality (`==`) for column matching, even for FUZZY-classified columns. Tolerance-aware correlation is out of scope for the POC. This means two rows differing only in a FUZZY column within tolerance will still score as a mismatch for correlation purposes. This does not affect correctness — it only affects which unmatched rows get paired for diagnostic display. The diff engine handles FUZZY tolerance correctly for PASS/FAIL determination.
 
 ---
 
@@ -936,7 +949,10 @@ def compare_lines(
     """Compare header or trailer lines positionally.
 
     Exact string match per position.
-    If line counts differ, missing lines compared against empty string.
+    Both sides always have the same line count — both files are read with the
+    same config (same header_rows / trailer_rows). If a file has fewer total lines
+    than header_rows + trailer_rows, the reader raises ReaderError before this
+    function is called.
     """
 ```
 
@@ -1185,7 +1201,7 @@ This is the complete JSON structure that `report.py` produces. Every field maps 
 
 **FSD-7.9 [BR-1.1]:** `attestation`: always present, fixed text.
 
-**FSD-7.10:** Schema mismatch report: same top-level structure. `summary.result = "FAIL"`, `match_count = 0`, `mismatch_count = 0`, `match_percentage = 0.0`. `mismatches.schema_mismatches` populated. No header/trailer comparison (pipeline short-circuited). `hash_groups` empty. `correlation` empty.
+**FSD-7.10:** Schema mismatch report: same top-level structure. `summary.result = "FAIL"`, `match_count = 0`, `mismatch_count = 0`, `match_percentage = 0.0`. `mismatches.schema_mismatches` populated. No header/trailer comparison (pipeline short-circuited). `hash_groups` empty. `correlation` empty. Note: `match_count = 0` and `mismatch_count = 0` is not a contradiction — the comparison never ran, so no rows were classified either way. `match_percentage = 0.0` rather than `null` to keep the field type consistent (always float).
 
 ---
 
