@@ -3,7 +3,7 @@
 **Version:** 1.1
 **Date:** 2026-02-28
 **Status:** Draft — Pending Dan's Approval
-**Upstream:** BRD v3.1 (128 BR IDs, audit-revised), Test Architecture v2.1 (60 BDD scenarios)
+**Upstream:** BRD v3.1 (128 BR IDs, audit-revised), Test Architecture v2.2 (66 BDD scenarios)
 **Revision:** v1.1 — FSD audit corrections (FUZZY-as-mismatch, match_count single-counted, null-safe sort, threshold integer math, tag count fix, and other audit findings)
 
 ---
@@ -1144,8 +1144,8 @@ This is the complete JSON structure that `report.py` produces. Every field maps 
     {
       "position": 0,
       "lhs": "TRAILER|5000|2026-02-28",
-      "rhs": "TRAILER|5001|2026-02-27",
-      "match": false
+      "rhs": "TRAILER|5000|2026-02-28",
+      "match": true
     }
   ],
 
@@ -1344,7 +1344,7 @@ This FSD advances the following TAR register items:
 | T-04: CSV Trailing Control Record | FSD-5.3.15 (trailer_rows), FSD-6.5–6.6 |
 | T-05: Per-Job Config Schema | FSD-5.2.* |
 | T-06: Report Generator | FSD-5.9.*, FSD-7.* |
-| T-12: TDD/BDD Test Suite | Appendix A (test file mapping to 66 BDD scenarios) |
+| T-12: TDD/BDD Test Suite | Appendix A (test file mapping to 66 BDD scenarios, v2.2 numbering) |
 | AC-01: Proofmark Maturity | This document IS the functional specification |
 | AC-24: Attestation Problem | FSD-6.8 (fixed attestation text in every report) |
 | AC-25: Information Isolation | FSD-1.2 (portability test — zero platform knowledge) |
@@ -1355,21 +1355,21 @@ This FSD advances the following TAR register items:
 
 **Note on test file organization:** The Test Architecture v2 organizes tests by **feature area** (12 areas, 12 test files). This FSD reorganizes tests by **module** (11 test files). This is a deliberate departure — unit tests target module contracts, not feature areas. Some scenarios appear in multiple test files because they are tested at both the unit level (testing a specific module's behavior) and the integration level (testing end-to-end pipeline behavior). This overlap is intentional multi-level testing, not duplication.
 
-Each test file maps to one or more feature areas from the Test Architecture v2. Test scenarios are referenced by number from that document.
+Each test file maps to one or more feature areas from the Test Architecture v2.2. Test scenarios are referenced by number from that document (sequential order of appearance, 1–66).
 
 | Test File | Feature Area | Scenarios | Fixture Directories |
 |-----------|-------------|-----------|-------------------|
 | `test_parquet_reader.py` | parquet_reader | 1–4 | `parquet/identical_*`, `parquet/data_mismatch`, `parquet/empty_directory` |
 | `test_csv_reader.py` | csv_reader | 5–9 | `csv/simple_match`, `csv/with_trailer_match`, `csv/header_mismatch`, `csv/trailer_mismatch`, `csv/data_mismatch` |
 | `test_schema.py` | schema_validation | 10–13 | `parquet/schema_mismatch_*` |
-| `test_hasher.py` | column_classification, hash_sort_diff, null_handling | 14–16, 19–21, 24–26 | `parquet/excluded_*`, `parquet/fuzzy_*`, `parquet/different_row_order`, `parquet/mixed_classification`, `parquet/with_nulls`, `parquet/null_vs_empty_string` |
-| `test_diff.py` | hash_sort_diff, row_count | 24–25, 58–60 | `parquet/different_row_order`, `parquet/duplicate_rows`, `parquet/row_count_mismatch`, `parquet/zero_rows` |
-| `test_tolerance.py` | column_classification (FUZZY), null_handling (FUZZY) | 16–18, 32–35, 61–63 | `parquet/fuzzy_*`, `parquet/fuzzy_null_*` |
-| `test_correlator.py` | report_output (correlation) | 43–44 | `parquet/correlation_*` |
-| `test_report.py` | report_output | 36–42 | Various |
-| `test_config.py` | config_validation | 50–57, 64–66 | `configs/*` |
-| `test_cli.py` | cli | 45–49 | Various |
-| `test_pipeline.py` | (end-to-end) | 22–23, 27–31, 38–39, 41, 42 | `csv/crlf_vs_lf`, `csv/encoding_*`, `csv/null_*`, `parquet/threshold_*` |
+| `test_hasher.py` | column_classification, hash_sort_diff, null_handling | 14–16, 19–21, 26–28 | `parquet/excluded_*`, `parquet/fuzzy_*`, `parquet/different_row_order`, `parquet/mixed_classification`, `parquet/with_nulls`, `parquet/null_vs_empty_string` |
+| `test_diff.py` | hash_sort_diff, row_count | 26–27, 64–66 | `parquet/different_row_order`, `parquet/duplicate_rows`, `parquet/row_count_mismatch`, `parquet/zero_rows` |
+| `test_tolerance.py` | column_classification (FUZZY), null_handling (FUZZY) | 16–18, 24–25, 34–38 | `parquet/fuzzy_*`, `parquet/fuzzy_null_*` |
+| `test_correlator.py` | report_output (correlation) | 46–47 | `parquet/correlation_*` |
+| `test_report.py` | report_output | 39–45 | Various |
+| `test_config.py` | config_validation | 53–63 | `configs/*` |
+| `test_cli.py` | cli | 48–52 | Various |
+| `test_pipeline.py` | (end-to-end) | 22–23, 29–33, 41–42, 44, 45 | `csv/crlf_vs_lf`, `csv/encoding_*`, `csv/null_*`, `parquet/threshold_*` |
 
 ---
 
