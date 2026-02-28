@@ -932,11 +932,13 @@ result = "PASS" if ALL of the following:
     len(all_fuzzy_failures) == 0             # All FUZZY within tolerance
     line_break_mismatch is not True          # No line break difference (CSV) [BR-4.2]
     len(schema_mismatches) == 0              # Schemas match [BR-4.9]
+    no header mismatches (CSV)               # [BR-11.25, BR-3.13]
+    no trailer mismatches (CSV)              # [BR-11.25, BR-3.13]
 else:
     result = "FAIL"
 ```
 
-A comparison can have 100% hash-level match and still FAIL if a FUZZY column exceeds tolerance [test scenario 42] or line breaks differ [test scenario 41].
+A comparison can have 100% hash-level match and still FAIL if a FUZZY column exceeds tolerance [test scenario 42], line breaks differ [test scenario 41], or headers/trailers differ [test scenarios 7–8]. Headers and trailers are part of the equivalence certification — if LHS has it, RHS must match it exactly.
 
 #### 5.10.2 `compare_lines` helper
 
@@ -990,7 +992,7 @@ def compare_lines(
 - Both results appear in the report [BR-3.14, BR-11.6].
 - Cross-file comparison only (LHS trailer vs RHS trailer). No internal consistency validation (e.g., trailer claims 5000 rows but data has 4999) [BR-11.7, BR-11.8]. Consistent with the attestation disclaimer — Proofmark certifies equivalence, not correctness.
 
-**FSD-6.6:** Header/trailer mismatches do **NOT** independently cause FAIL. They do not appear in the PASS/FAIL conditions [BR-11.25]. They are reported for human review.
+**FSD-6.6:** Header/trailer mismatches **cause FAIL** [BR-11.25]. Equivalence certification covers the entire file output — headers and trailers are not advisory metadata. If the LHS header says `"Name"` and the RHS says `"name"`, that's a FAIL. If the LHS trailer says `"expected rows: 6"` and the RHS says `"expected rows: 7"`, that's a FAIL. No tolerance, no fuzzy matching, no human judgment. Exact literal string match or FAIL.
 
 ### 6.5 Zero-Row Edge Case
 

@@ -490,7 +490,7 @@ Example: LHS has 5,000 rows. RHS has 5,001 rows. One RHS row has no correspondin
 - **[BR-11.22]** Threshold is in the configuration (e.g., 99.5% match required).
 - **[BR-11.23]** Default threshold: 100.0% (consistent with default-strict philosophy). Any surplus row = FAIL at default threshold.
 - **[BR-11.24]** The report always shows ALL mismatches regardless of pass/fail.
-- **[BR-11.25]** PASS = match percentage >= threshold with all STRICT columns exact and all FUZZY columns within tolerance, and no line break mismatch flag (CSV), and no schema mismatch.
+- **[BR-11.25]** PASS = match percentage >= threshold with all STRICT columns exact and all FUZZY columns within tolerance, and no line break mismatch flag (CSV), and no schema mismatch, and no header/trailer mismatch (CSV). Headers and trailers must be byte-for-byte equivalent — they are part of the equivalence certification, not advisory metadata.
 - **[BR-11.26]** FAIL = anything else.
 
 *(Decision 10, Design Session 002; T-8, T-10, T-12, Revision Log)*
