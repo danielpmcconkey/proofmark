@@ -13,14 +13,14 @@ Proofmark is a CLI tool that compares two file-based dataset outputs (LHS and RH
 
 ### 1.1 Design Principles
 
-| Principle | Description | BR |
-|-----------|-------------|-----|
-| Single comparison target | One config, one comparison, one report per invocation | BR-3.1, BR-12.5 |
-| Portability | Zero platform-specific knowledge. Could be sold to any enterprise | BR-3.2 |
-| No target relationships | No dependency modeling between comparison targets | BR-3.3, BR-3.4 |
-| File-to-file only | No database in the loop | BR-3.5 |
-| Default-strict | Every column is STRICT unless explicitly classified otherwise | BR-5.5, BR-5.9 |
-| Attestation, not certification | Equivalence to original, not absolute correctness | BR-1.1 |
+| Principle | Description | BR | FSD |
+|-----------|-------------|-----|-----|
+| Single comparison target | One config, one comparison, one report per invocation | BR-3.1, BR-12.5 | FSD-1.1 |
+| Portability | Zero platform-specific knowledge. Could be sold to any enterprise | BR-3.2 | FSD-1.2 |
+| No target relationships | No dependency modeling between comparison targets | BR-3.3, BR-3.4 | FSD-1.3 |
+| File-to-file only | No database in the loop | BR-3.5 | FSD-1.4 |
+| Default-strict | Every column is STRICT unless explicitly classified otherwise | BR-5.5, BR-5.9 | FSD-1.5 |
+| Attestation, not certification | Equivalence to original, not absolute correctness | BR-1.1 | FSD-1.6 |
 
 ### 1.2 High-Level Data Flow
 
@@ -111,7 +111,7 @@ build-backend = "setuptools.backends._legacy:_Backend"
 where = ["src"]
 ```
 
-**Rationale:** Minimal dependency footprint. `pyarrow` for parquet reading (no alternative). `pyyaml` for config parsing. No pandas — list-of-dicts is sufficient for a comparison tool and avoids a heavy transitive dependency. Standard library covers everything else (`hashlib`, `csv`, `json`, `argparse`, `pathlib`).
+**FSD-3.1:** Minimal dependency footprint. `pyarrow` for parquet reading (no alternative). `pyyaml` for config parsing. No pandas — list-of-dicts is sufficient for a comparison tool and avoids a heavy transitive dependency. Standard library covers everything else (`hashlib`, `csv`, `json`, `argparse`, `pathlib`).
 
 ---
 
@@ -168,6 +168,11 @@ class ComparisonConfig:
     # All columns not in excluded or fuzzy are STRICT [BR-5.5]
 ```
 
+- **FSD-4.1:** Two reader types: `"parquet"` and `"csv"` [BR-3.6].
+- **FSD-4.2:** Two tolerance types: `"absolute"` and `"relative"` [BR-7.1].
+- **FSD-4.3:** `ExcludedColumn` requires `reason` [BR-5.3]. `FuzzyColumn` requires `tolerance`, `tolerance_type`, and `reason` [BR-7.6, BR-7.7, BR-5.8].
+- **FSD-4.4:** `ComparisonConfig` defaults: `encoding = "utf-8"` [BR-9.1], `threshold = 100.0` [BR-11.23]. All columns not in excluded or fuzzy are STRICT [BR-5.5].
+
 ### 4.2 Reader Output Types — `readers/base.py`
 
 ```python
@@ -185,6 +190,9 @@ class ReaderResult:
     trailer_lines: tuple[str, ...] | None # CSV only: raw trailer line strings [BR-3.11]
     line_break_style: str | None         # CSV only: "LF" or "CRLF" [BR-4.1]
 ```
+
+- **FSD-4.5:** `SchemaInfo.column_types` is populated for parquet (pyarrow type name strings), empty dict for CSV [BR-4.13].
+- **FSD-4.6:** `ReaderResult` CSV-specific fields (`header_lines`, `trailer_lines`, `line_break_style`) are `None` for parquet.
 
 ### 4.3 Pipeline Internal Types — `hasher.py`, `diff.py`, `correlator.py`
 
@@ -254,6 +262,11 @@ class CorrelationResult:
     uncorrelated_rhs: list[str]              # [BR-11.11]
 ```
 
+- **FSD-4.7:** `HashedRow.hash_key` is MD5 of STRICT columns only [BR-4.16]. `unhashed_content` is all non-excluded columns, pipe-delimited [BR-4.15].
+- **FSD-4.8:** `HashGroupResult.status` is `"MATCH"` or `"COUNT_MISMATCH"` [BR-4.19]. `matched_count = min(lhs_count, rhs_count)` [BR-11.14].
+- **FSD-4.9:** `DiffResult.total_matched` uses double-counting: `sum(matched_count × 2)` across all hash groups [BR-11.14].
+- **FSD-4.10:** `CorrelatedPair.confidence` is `"high"` for pairs exceeding the similarity threshold [BR-11.10].
+
 ### 4.4 Report Types — `report.py`
 
 ```python
@@ -277,6 +290,9 @@ class HeaderTrailerResult:
     match: bool                          # Exact string match [BR-3.13]
 ```
 
+- **FSD-4.11:** `match_count` = number of unique row matches (single-counted: `total_matched / 2`). `mismatch_count` = `max(row_count_lhs, row_count_rhs) - match_count`. These are human-readable summary values; the internal `total_matched` (double-counted) drives `match_percentage` [BR-11.14].
+- **FSD-4.12:** `HeaderTrailerResult.match` is exact literal string comparison [BR-3.13].
+
 ---
 
 ## 5. Module Specifications
@@ -291,53 +307,56 @@ def main() -> None:
     """Entry point. Parses args, runs pipeline, writes report, exits."""
 ```
 
-**CLI Signature [BR-12.1–4]:**
+**FSD-5.1.1 [BR-12.1–4]:** CLI signature:
 ```
 proofmark compare --config <path> --left <path> --right <path> [--output <path>]
 ```
 
-| Flag | Required | Description | BR |
-|------|----------|-------------|-----|
-| `--config` | Yes | Path to YAML config file | BR-12.1 |
-| `--left` | Yes | LHS path (file for CSV, directory for parquet) | BR-12.2 |
-| `--right` | Yes | RHS path (same semantics as `--left`) | BR-12.3 |
-| `--output` | No | Output file path. Omitted → stdout | BR-12.4 |
+The `compare` subcommand is the only subcommand in the MVP. It exists for forward compatibility.
 
-**Exit Codes [BR-12.6–8]:**
+| Flag | Required | Description | BR | FSD |
+|------|----------|-------------|-----|-----|
+| `--config` | Yes | Path to YAML config file | BR-12.1 | FSD-5.1.2 |
+| `--left` | Yes | LHS path (file for CSV, directory for parquet) | BR-12.2 | FSD-5.1.3 |
+| `--right` | Yes | RHS path (same semantics as `--left`) | BR-12.3 | FSD-5.1.4 |
+| `--output` | No | Output file path. Omitted → stdout | BR-12.4 | FSD-5.1.5 |
 
-| Code | Meaning | Trigger |
-|------|---------|---------|
-| 0 | PASS | Comparison result is PASS |
-| 1 | FAIL | Comparison result is FAIL (data mismatch, schema mismatch, line break mismatch, FUZZY tolerance exceeded) |
-| 2 | ERROR | Invalid config, file not found, encoding error, parse failure |
+**FSD-5.1.6 [BR-12.6–8]:** Exit codes:
 
-**Behavior:**
+| Code | Meaning | Trigger | FSD |
+|------|---------|---------|-----|
+| 0 | PASS | Comparison result is PASS | FSD-5.1.7 |
+| 1 | FAIL | Comparison result is FAIL (data mismatch, schema mismatch, line break mismatch, FUZZY tolerance exceeded) | FSD-5.1.8 |
+| 2 | ERROR | Invalid config, file not found, encoding error, parse failure | FSD-5.1.9 |
+
+**FSD-5.1.10:** Behavior:
 1. Parse args with `argparse`. Missing required args → `argparse` handles with exit code 2.
 2. Call `pipeline.run(config_path, lhs_path, rhs_path)`.
 3. Serialize the returned report dict to JSON.
 4. Write to `--output` file or stdout [BR-12.4]. Same JSON format either way.
 5. `sys.exit()` with code based on report result.
 
-**Error handling:** All exceptions from the pipeline are caught at this level.
+**FSD-5.1.11:** Error handling — all exceptions from the pipeline are caught at this level:
 - `ConfigError` → exit 2.
 - `FileNotFoundError` → exit 2.
 - `EncodingError` → exit 2.
-- `SchemaMismatchError` → the pipeline returns a FAIL report (not an exception). Exit 1.
+- Schema mismatch → the pipeline returns a FAIL report (not an exception). Exit 1.
 - Unexpected exceptions → print to stderr, exit 2.
 
-**Not supported (MVP) [BR-12.10–13]:** No verbosity flags, no batch mode, no dry-run, no CLI overrides of config values.
+**FSD-5.1.12 [BR-12.10–13]:** Not supported in MVP: no verbosity flags, no batch mode, no dry-run, no CLI overrides of config values.
 
 ---
 
 ### 5.2 Configuration — `config.py`
 
-**Purpose:** Parse a YAML config file, validate all fields, return a typed `ComparisonConfig`.
+**Purpose:** Parse a YAML config file, validate all fields, return a typed `ComparisonConfig` and the raw parsed dict for report echo.
 
 **Public API:**
 ```python
-def load_config(config_path: Path) -> ComparisonConfig:
+def load_config(config_path: Path) -> tuple[ComparisonConfig, dict]:
     """Load and validate a YAML config file.
 
+    Returns (typed config, raw YAML dict for report echo [BR-11.3]).
     Raises ConfigError on any validation failure.
     """
 
@@ -346,23 +365,23 @@ class ConfigError(Exception):
     """Invalid configuration. Results in exit code 2."""
 ```
 
-**Validation Rules:**
+**FSD-5.2.1:** Validation rules:
 
-| Rule | Error Condition | BR |
-|------|----------------|-----|
-| `comparison_target` required | Missing or empty | BR-6.6 |
-| `reader` required | Missing | BR-6.6 |
-| `reader` value | Not `"csv"` or `"parquet"` | BR-3.6 |
-| FUZZY `tolerance_type` required | Missing on any FUZZY column | BR-7.6 |
-| FUZZY `tolerance` required | Missing on any FUZZY column | BR-7.7 |
-| FUZZY `tolerance_type` value | Not `"absolute"` or `"relative"` | BR-7.1 |
-| EXCLUDED `reason` required | Missing on any EXCLUDED column | BR-5.3 |
-| FUZZY `reason` required | Missing on any FUZZY column | BR-5.8 |
-| No duplicate classifications | Same column in both EXCLUDED and FUZZY lists | BR-5.1 |
-| `threshold` range | Must be 0.0 ≤ threshold ≤ 100.0 | BR-11.22 |
-| YAML parseable | File is not valid YAML | BR-6.5 |
+| Rule | Error Condition | BR | FSD |
+|------|----------------|-----|-----|
+| `comparison_target` required | Missing or empty | BR-6.6 | FSD-5.2.2 |
+| `reader` required | Missing | BR-6.6 | FSD-5.2.3 |
+| `reader` value | Not `"csv"` or `"parquet"` | BR-3.6 | FSD-5.2.4 |
+| FUZZY `tolerance_type` required | Missing on any FUZZY column | BR-7.6 | FSD-5.2.5 |
+| FUZZY `tolerance` required | Missing on any FUZZY column | BR-7.7 | FSD-5.2.6 |
+| FUZZY `tolerance_type` value | Not `"absolute"` or `"relative"` | BR-7.1 | FSD-5.2.7 |
+| EXCLUDED `reason` required | Missing on any EXCLUDED column | BR-5.3 | FSD-5.2.8 |
+| FUZZY `reason` required | Missing on any FUZZY column | BR-5.8 | FSD-5.2.9 |
+| No duplicate classifications | Same column in both EXCLUDED and FUZZY lists | BR-5.1 | FSD-5.2.10 |
+| `threshold` range | Must be 0.0 ≤ threshold ≤ 100.0 | BR-11.22 | FSD-5.2.11 |
+| YAML parseable | File is not valid YAML | BR-6.5 | FSD-5.2.12 |
 
-**Parsing logic:**
+**FSD-5.2.13:** Parsing logic:
 1. Read file contents. YAML parse error → `ConfigError`.
 2. Extract `comparison_target` (required string).
 3. Extract `reader` (required: `"csv"` or `"parquet"`).
@@ -372,9 +391,9 @@ class ConfigError(Exception):
 7. Extract `columns.excluded` list. Validate each entry has `name` and `reason`.
 8. Extract `columns.fuzzy` list. Validate each entry has `name`, `tolerance`, `tolerance_type`, `reason`.
 9. Cross-check: no column name appears in both excluded and fuzzy lists [BR-5.1].
-10. Return `ComparisonConfig`.
+10. Return `(ComparisonConfig, raw_dict)`.
 
-**What config does NOT contain [BR-6.6–8]:** File paths. The CLI provides `--left` and `--right`. This separation is critical — same config for Tuesday's run and Wednesday's run. If config changes mid-window, go back to start date and re-run all [BR-6.8].
+**FSD-5.2.14 [BR-6.6–8]:** Config does NOT contain file paths. The CLI provides `--left` and `--right`. This separation is critical — same config for Tuesday's run and Wednesday's run. If config changes mid-window, go back to start date and re-run all [BR-6.8].
 
 **Reference YAML schema (from BRD):**
 ```yaml
@@ -412,7 +431,7 @@ class BaseReader(ABC):
         """Read input data from path. Return normalized ReaderResult."""
 ```
 
-**Factory — `readers/__init__.py`:**
+**FSD-5.3.1:** Factory — `readers/__init__.py`:
 ```python
 def create_reader(config: ComparisonConfig) -> BaseReader:
     """Return the appropriate reader based on config.
@@ -422,7 +441,7 @@ def create_reader(config: ComparisonConfig) -> BaseReader:
     """
 ```
 
-CSV-specific settings (`CsvSettings`) are injected via the `CsvReader` constructor, not through the `read()` method signature. This keeps the `BaseReader` ABC clean.
+**FSD-5.3.2:** CSV-specific settings (`CsvSettings`) are injected via the `CsvReader` constructor, not through the `read()` method signature. This keeps the `BaseReader` ABC clean.
 
 #### 5.3.2 Parquet Reader — `readers/parquet.py`
 
@@ -448,16 +467,15 @@ class ParquetReader(BaseReader):
 ```
 
 **Behavior:**
-1. Validate `path` is an existing directory.
-2. Glob `path/*.parquet` — collect all parquet files [BR-3.8].
-3. If no files found → `ReaderError` (exit 2).
-4. Read each file with `pyarrow.parquet.read_table()`.
-5. Concatenate all tables with `pyarrow.concat_tables()` [BR-3.9, BR-3.15].
-6. Extract schema: column names (in order) and column types as pyarrow type name strings (e.g. `"int64"`, `"float64"`, `"string"`, `"bool"`) [BR-4.12].
-7. Convert to `list[dict[str, Any]]` via `table.to_pydict()` reshaped row-wise.
-8. Return `ReaderResult` with `header_lines=None`, `trailer_lines=None`, `line_break_style=None`.
+1. **FSD-5.3.3 [BR-3.7]:** Validate `path` is an existing directory.
+2. **FSD-5.3.4 [BR-3.8]:** Glob `path/*.parquet` — collect all parquet files.
+3. **FSD-5.3.5:** If no files found → `ReaderError` (exit 2).
+4. **FSD-5.3.6 [BR-3.9, BR-3.15]:** Read each file with `pyarrow.parquet.read_table()`. Concatenate all tables with `pyarrow.concat_tables()`.
+5. **FSD-5.3.7 [BR-4.12]:** Extract schema: column names (in order) and column types as pyarrow type name strings (e.g. `"int64"`, `"float64"`, `"string"`, `"bool"`).
+6. **FSD-5.3.8:** Convert to `list[dict[str, Any]]` via `table.to_pydict()` reshaped row-wise.
+7. **FSD-5.3.9:** Return `ReaderResult` with `header_lines=None`, `trailer_lines=None`, `line_break_style=None`.
 
-**Part file assembly [BR-3.16]:** 3 part files with 100 rows each must compare identically to 1 part file with 300 rows. This is guaranteed by the concat-then-compare approach — the pipeline never sees part file boundaries.
+**FSD-5.3.10 [BR-3.16]:** Part file assembly: 3 part files with 100 rows each must compare identically to 1 part file with 300 rows. Guaranteed by the concat-then-compare approach — the pipeline never sees part file boundaries.
 
 #### 5.3.3 CSV Reader — `readers/csv_reader.py`
 
@@ -486,20 +504,19 @@ class CsvReader(BaseReader):
 ```
 
 **Behavior:**
-1. **Line break detection [BR-4.1]:** Read raw bytes. If `b"\r\n"` is present → `line_break_style = "CRLF"`. Otherwise → `line_break_style = "LF"`.
-2. **Decode [BR-9.1]:** Open file with configured encoding. Decode failure → `EncodingError` (exit 2) [BR-9.2].
-3. **Normalize for splitting [BR-4.3]:** Internally normalize line breaks to `\n` for consistent row splitting. This normalization is internal only — it does not alter the line break mismatch detection from step 1.
-4. **Split into lines:** Split on `\n` after normalization. Drop trailing empty line if present (artifact of trailing newline).
-5. **Separate segments [BR-3.11]:**
-   - Header lines: first `header_rows` lines (raw strings, preserved for comparison) [BR-3.13].
-   - Trailer lines: last `trailer_rows` lines (raw strings, preserved for comparison) [BR-3.13].
-   - Data lines: everything between header and trailer [BR-3.12].
+1. **FSD-5.3.11 [BR-4.1]:** Line break detection: read raw bytes. If `b"\r\n"` is present → `line_break_style = "CRLF"`. Otherwise → `line_break_style = "LF"`.
+2. **FSD-5.3.12 [BR-9.1, BR-9.2]:** Decode: open file with configured encoding. Decode failure → `EncodingError` (exit 2).
+3. **FSD-5.3.13 [BR-4.3]:** Normalize for splitting: internally normalize line breaks to `\n` for consistent row splitting. This normalization is internal only — it does not alter the line break mismatch detection from step 1.
+4. **FSD-5.3.14:** Split into lines: split on `\n` after normalization. Drop trailing empty line if present (artifact of trailing newline).
+5. **FSD-5.3.15 [BR-3.11, BR-3.12, BR-3.13]:** Separate segments:
+   - Header lines: first `header_rows` lines (raw strings, preserved for comparison).
+   - Trailer lines: last `trailer_rows` lines (raw strings, preserved for comparison).
+   - Data lines: everything between header and trailer.
    - If total lines < `header_rows + trailer_rows` → `ReaderError` (exit 2).
-6. **Parse data rows:** Use Python `csv.reader` on data lines [BR-14.1].
-7. **Extract column names:** If `header_rows >= 1`, parse the first header line with `csv.reader` to get column names. If `header_rows == 0`, name columns positionally: `"0"`, `"1"`, `"2"`, etc.
-8. **Build schema:** `SchemaInfo` with column names and empty `column_types` dict [BR-4.13] (type validation is parquet-only).
-9. **Convert data rows** to `list[dict[str, Any]]` keyed by column name.
-10. Return `ReaderResult`.
+6. **FSD-5.3.16 [BR-14.1]:** Parse data rows using Python `csv.reader`.
+7. **FSD-5.3.17:** Extract column names: if `header_rows >= 1`, parse the first header line with `csv.reader` to get column names. If `header_rows == 0`, name columns positionally: `"0"`, `"1"`, `"2"`, etc.
+8. **FSD-5.3.18 [BR-4.13]:** Build schema: `SchemaInfo` with column names and empty `column_types` dict (type validation is parquet-only).
+9. **FSD-5.3.19:** Convert data rows to `list[dict[str, Any]]` keyed by column name. Return `ReaderResult`.
 
 ---
 
@@ -521,20 +538,20 @@ def validate_schema(
     """
 ```
 
-**Checks (in order):**
+**FSD-5.4.1:** Checks (in order):
 
-| Check | Applies To | BR |
-|-------|-----------|-----|
-| Column count differs | Both readers | BR-4.10 |
-| Column name differs (positional comparison) | Both readers | BR-4.11 |
-| Column type differs | Parquet only | BR-4.12, BR-4.13 |
+| Check | Applies To | BR | FSD |
+|-------|-----------|-----|-----|
+| Column count differs | Both readers | BR-4.10 | FSD-5.4.2 |
+| Column name differs (positional comparison) | Both readers | BR-4.11 | FSD-5.4.3 |
+| Column type differs | Parquet only | BR-4.12, BR-4.13 | FSD-5.4.4 |
 
 **Behavior:**
-1. Compare `len(lhs_schema.column_names)` vs `len(rhs_schema.column_names)`. Different → add mismatch description.
-2. If counts match: compare column names positionally. Each name mismatch → add description.
-3. If `reader_type == PARQUET` and counts match: compare column types positionally. Each type mismatch → add description (e.g. `"Column 'balance': float64 vs int32"`) [BR-4.12].
+1. **FSD-5.4.2 [BR-4.10]:** Compare `len(lhs_schema.column_names)` vs `len(rhs_schema.column_names)`. Different → add mismatch description.
+2. **FSD-5.4.3 [BR-4.11]:** If counts match: compare column names positionally. Each name mismatch → add description.
+3. **FSD-5.4.4 [BR-4.12, BR-4.13]:** If `reader_type == PARQUET` and counts match: compare column types positionally. Each type mismatch → add description (e.g. `"Column 'balance': float64 vs int32"`).
 
-**On mismatch:** The pipeline generates a FAIL report with schema mismatch details in lieu of running the comparison. No further pipeline steps execute. Exit code 1.
+**FSD-5.4.5 [BR-4.9]:** On mismatch: the pipeline generates a FAIL report with schema mismatch details in lieu of running the comparison. No further pipeline steps execute. Exit code 1.
 
 ---
 
@@ -565,22 +582,22 @@ def hash_rows(
 
 **Algorithm per row:**
 
-1. **Exclude [BR-4.14]:** Remove all columns in `excluded_names`. They do not exist from this point forward.
-2. **Identify column sets:**
-   - `strict_columns`: columns in `column_order` that are NOT in `excluded_names` and NOT in `fuzzy_names`. These are STRICT [BR-5.5].
+1. **FSD-5.5.1 [BR-4.14]:** Exclude: remove all columns in `excluded_names`. They do not exist from this point forward.
+2. **FSD-5.5.2 [BR-5.5]:** Identify column sets:
+   - `strict_columns`: columns in `column_order` that are NOT in `excluded_names` and NOT in `fuzzy_names`. These are STRICT.
    - `fuzzy_columns`: columns in `column_order` that are in `fuzzy_names`.
    - `non_excluded_columns`: `strict_columns + fuzzy_columns` in schema order.
-3. **Value-to-string conversion:**
+3. **FSD-5.5.3:** Value-to-string conversion:
    - Non-null values: `str(value)`.
-   - Null/None values (parquet): the literal string `"__PROOFMARK_NULL__"`. This sentinel is chosen to be unambiguous against any plausible data value [BR-8.1, BR-8.4].
-   - CSV values: used as-is (they're already strings). No null normalization [BR-8.2].
-4. **Hash input [BR-4.16]:** Concatenate STRICT column string values in schema order, separated by `\x00` (null byte). This separator prevents collision between values like `["ab", "c"]` and `["a", "bc"]`.
-5. **Compute hash [BR-10.1]:** `hashlib.md5(hash_input.encode("utf-8")).hexdigest()`.
-6. **Unhashed content [BR-4.15]:** Concatenate ALL non-excluded column string values in schema order, separated by `|` (pipe). This is for human-readable report output. The pipe separator is for display only.
-7. **Extract FUZZY values:** `{col_name: original_value for col_name in fuzzy_columns}`.
-8. **Build `HashedRow`** with `hash_key`, `unhashed_content`, `fuzzy_values`, `row_data` (all non-excluded columns).
+   - **FSD-5.5.4 [BR-8.1, BR-8.4]:** Null/None values (parquet): the literal string `"__PROOFMARK_NULL__"`. This sentinel is chosen to be unambiguous against any plausible data value.
+   - **FSD-5.5.5 [BR-8.2]:** CSV values: used as-is (they're already strings). No null normalization.
+4. **FSD-5.5.6 [BR-4.16]:** Hash input: concatenate STRICT column string values in schema order, separated by `\x00` (null byte). This separator prevents collision between values like `["ab", "c"]` and `["a", "bc"]`.
+5. **FSD-5.5.7 [BR-10.1]:** Compute hash: `hashlib.md5(hash_input.encode("utf-8")).hexdigest()`.
+6. **FSD-5.5.8 [BR-4.15]:** Unhashed content: concatenate ALL non-excluded column string values in schema order, separated by `|` (pipe). This is for human-readable report output. The pipe separator is for display only.
+7. **FSD-5.5.9:** Extract FUZZY values: `{col_name: original_value for col_name in fuzzy_columns}`.
+8. **FSD-5.5.10:** Build `HashedRow` with `hash_key`, `unhashed_content`, `fuzzy_values`, `row_data` (all non-excluded columns).
 
-**Column ordering determinism:** All operations iterate columns in schema order (the order they appear in `column_order`). This guarantees identical hashes regardless of Python dict ordering.
+**FSD-5.5.11:** Column ordering determinism: all operations iterate columns in schema order (the order they appear in `column_order`). This guarantees identical hashes regardless of Python dict ordering.
 
 ---
 
@@ -604,35 +621,33 @@ def diff(
 
 **Algorithm:**
 
-1. **Group by hash [BR-4.17]:**
-   - Build `lhs_groups: dict[str, list[HashedRow]]` — key is `hash_key`.
-   - Build `rhs_groups: dict[str, list[HashedRow]]` — same structure.
+1. **FSD-5.6.1 [BR-4.17]:** Group by hash: build `lhs_groups: dict[str, list[HashedRow]]` and `rhs_groups: dict[str, list[HashedRow]]`, keyed by `hash_key`.
 
-2. **Iterate all unique hash keys [BR-4.18]:** Union of keys from both dicts.
+2. **FSD-5.6.2 [BR-4.18]:** Iterate all unique hash keys (union of keys from both dicts).
 
 3. **Per hash key:**
    - `lhs_list = lhs_groups.get(key, [])`, `rhs_list = rhs_groups.get(key, [])`.
    - `lhs_count = len(lhs_list)`, `rhs_count = len(rhs_list)`.
-   - `matched_count = min(lhs_count, rhs_count)` [BR-11.14].
-   - **Status:** `"MATCH"` if `lhs_count == rhs_count`, else `"COUNT_MISMATCH"` [BR-4.19, BR-4.20].
-   - **Surplus rows:** If `lhs_count > rhs_count` → last `(lhs_count - rhs_count)` LHS rows are surplus (as `UnmatchedRow`, side=`"lhs"`). Vice versa for RHS surplus [BR-4.20].
-   - **FUZZY validation [BR-4.21]:** If `matched_count > 0` and `len(fuzzy_columns) > 0`:
-     - Sort both sides' first `matched_count` rows by their FUZZY values (lexicographic on `tuple(str(row.fuzzy_values[col.name]) for col in fuzzy_columns)`) for deterministic pairing.
+   - **FSD-5.6.3 [BR-11.14]:** `matched_count = min(lhs_count, rhs_count)`.
+   - **FSD-5.6.4 [BR-4.19, BR-4.20]:** Status: `"MATCH"` if `lhs_count == rhs_count`, else `"COUNT_MISMATCH"`.
+   - **FSD-5.6.5 [BR-4.20]:** Surplus rows: if `lhs_count > rhs_count` → last `(lhs_count - rhs_count)` LHS rows are surplus (as `UnmatchedRow`, side=`"lhs"`). Vice versa for RHS surplus.
+   - **FSD-5.6.6 [BR-4.21]:** FUZZY validation: if `matched_count > 0` and `len(fuzzy_columns) > 0`:
+     - **FSD-5.6.7:** Sort both sides' first `matched_count` rows by their FUZZY values (lexicographic on `tuple(str(row.fuzzy_values[col.name]) for col in fuzzy_columns)`) for deterministic pairing. Ties broken by `unhashed_content`.
      - Pair row-by-row: `lhs_list[i]` with `rhs_list[i]` for `i` in `0..matched_count-1`.
      - For each pair, call `tolerance.check_fuzzy()` on each FUZZY column.
      - Collect any `FuzzyFailure` results.
-   - **Include in output hash_groups list only if:** status is `"COUNT_MISMATCH"` OR there are FUZZY failures. Groups where everything matches are omitted [BR-11.20].
+   - **FSD-5.6.8 [BR-11.20]:** Include in output `hash_groups` list only if: status is `"COUNT_MISMATCH"` OR there are FUZZY failures. Groups where everything matches are omitted.
 
-4. **Accumulate totals:**
-   - `total_matched = sum(matched_count * 2 for each group)` — counted on both sides [BR-11.14].
-   - `total_lhs = sum(lhs_count for each group)` (should equal `len(lhs_rows)`).
-   - `total_rhs = sum(rhs_count for each group)` (should equal `len(rhs_rows)`).
+4. **FSD-5.6.9 [BR-11.14]:** Accumulate totals:
+   - `total_matched = sum(matched_count * 2 for each group)` — counted on both sides.
+   - `total_lhs = sum(lhs_count for each group)`.
+   - `total_rhs = sum(rhs_count for each group)`.
    - Collect all `UnmatchedRow` from all groups into `all_unmatched_lhs` and `all_unmatched_rhs`.
    - Collect all `FuzzyFailure` from all groups into `all_fuzzy_failures`.
 
-5. **Return `DiffResult`.**
+5. Return `DiffResult`.
 
-**Match percentage [BR-11.13–18]:**
+**FSD-5.6.10 [BR-11.13–18]:** Match percentage:
 ```python
 total_rows = total_lhs + total_rhs
 if total_rows == 0:
@@ -641,7 +656,7 @@ else:
     match_percentage = (total_matched / total_rows) * 100.0
 ```
 
-**Example [BR-11.18]:** LHS=5000 rows, RHS=5001 rows. One RHS row has a unique hash. `total_matched = 10000`. `total_rows = 10001`. `match_percentage = 99.99%`.
+**FSD-5.6.11 [BR-11.18]:** Example: LHS=5000 rows, RHS=5001 rows. One RHS row has a unique hash. `total_matched = 10000`. `total_rows = 10001`. `match_percentage = 99.99%`.
 
 ---
 
@@ -668,7 +683,7 @@ def check_fuzzy(
     """
 ```
 
-**Absolute tolerance [BR-7.2]:**
+**FSD-5.7.1 [BR-7.2]:** Absolute tolerance:
 ```python
 lhs_f, rhs_f = float(lhs_value), float(rhs_value)
 delta = abs(lhs_f - rhs_f)
@@ -676,22 +691,23 @@ passes = delta <= tolerance
 # actual_delta for report = delta
 ```
 
-**Relative tolerance [BR-7.3]:**
+**FSD-5.7.2 [BR-7.3]:** Relative tolerance:
 ```python
 lhs_f, rhs_f = float(lhs_value), float(rhs_value)
 delta = abs(lhs_f - rhs_f)
 denominator = max(abs(lhs_f), abs(rhs_f))
+passes = delta / denominator <= tolerance
+# actual_delta for report = delta / denominator
 ```
 
 **Edge cases:**
-- **Both values zero [BR-7.4]:** `delta = 0`. Short-circuit to pass. `actual_delta = 0.0`. For relative: avoids `0/0`.
-- **One value zero, other non-zero [BR-7.5]:** Relative formula naturally handles this. `|0 - 0.0001| / max(0, 0.0001) = 1.0`. Fails any reasonable tolerance. No special-casing needed.
-- **Non-numeric FUZZY value:** `float()` conversion raises `ValueError`. Pipeline treats this as exit code 2 — a FUZZY column must contain numeric data.
+- **FSD-5.7.3 [BR-7.4]:** Both values zero: `delta = 0`. Short-circuit to pass. `actual_delta = 0.0`. For relative: avoids `0/0`.
+- **FSD-5.7.4 [BR-7.5]:** One value zero, other non-zero: relative formula naturally handles this. `|0 - 0.0001| / max(0, 0.0001) = 1.0`. Fails any reasonable tolerance. No special-casing needed.
+- **FSD-5.7.5:** Non-numeric FUZZY value: `float()` conversion raises `ValueError`. Pipeline treats this as exit code 2 — a FUZZY column must contain numeric data.
 
-**Return value:** On failure, `FuzzyFailure` includes:
-- `actual_delta`: For absolute — the raw delta. For relative — `delta / denominator`.
+**FSD-5.7.6:** Return value: on failure, `FuzzyFailure` includes `actual_delta`. For absolute: the raw delta. For relative: `delta / denominator`.
 
-**No "percentage" type [BR-7.8]:** Relative tolerance of `0.01` IS 1%. No ambiguity.
+**FSD-5.7.7 [BR-7.8]:** No "percentage" type. Relative tolerance of `0.01` IS 1%. No ambiguity.
 
 ---
 
@@ -716,24 +732,18 @@ def correlate(
 
 **Algorithm:**
 
-1. If either list is empty → return `CorrelationResult` with empty pairs and all rows uncorrelated.
-2. **Sort both lists** by `content` (alphabetical) for determinism.
-3. **Build similarity matrix:** For each `(lhs_i, rhs_j)` pair:
-   - Compare column values: `lhs_row.row_data[col] == rhs_row.row_data[col]` for each column in `column_names`.
-   - `score = matching_columns / len(column_names)`.
-4. **Greedy pairing** (highest score first):
+1. **FSD-5.8.1:** If either list is empty → return `CorrelationResult` with empty pairs and all rows uncorrelated.
+2. **FSD-5.8.2:** Sort both lists by `content` (alphabetical) for determinism.
+3. **FSD-5.8.3:** Build similarity matrix: for each `(lhs_i, rhs_j)` pair, compare column values (`lhs_row.row_data[col] == rhs_row.row_data[col]` for each column in `column_names`). Score = `matching_columns / len(column_names)`.
+4. **FSD-5.8.4 [BR-11.10]:** Greedy pairing (highest score first):
    a. Find the `(i, j)` pair with the highest `score`.
-   b. If `score > 0.5` → **high confidence pair** [BR-11.10]:
-      - Create `CorrelatedPair` with `confidence="high"`, `differing_columns` = list of columns that don't match.
-      - Remove both rows from candidate pools.
-      - Repeat from (a).
+   b. If `score > 0.5` → **high confidence pair**: create `CorrelatedPair` with `confidence="high"`, `differing_columns` = columns that don't match. Remove both rows from candidate pools. Repeat.
    c. If best remaining score ≤ 0.5 → stop pairing.
-5. All remaining LHS rows → `uncorrelated_lhs` (as unhashed content strings) [BR-11.11].
-6. All remaining RHS rows → `uncorrelated_rhs` [BR-11.11].
+5. **FSD-5.8.5 [BR-11.11]:** All remaining LHS rows → `uncorrelated_lhs` (as unhashed content strings). All remaining RHS rows → `uncorrelated_rhs`.
 
-**Confidence threshold:** > 50% of non-excluded columns matching = "high" confidence. This is a deterministic, conservative heuristic for common cases (e.g., two rows differing by one column out of five). Full fuzzy matching is vendor-build territory [BR-11.12].
+**FSD-5.8.6:** Confidence threshold: > 50% of non-excluded columns matching = "high" confidence. Deterministic, conservative heuristic for common cases. Full fuzzy matching is vendor-build territory [BR-11.12].
 
-**Complexity:** O(L × R × C) where L = unmatched LHS count, R = unmatched RHS count, C = column count. Acceptable for MVP volumes.
+**FSD-5.8.7:** Complexity: O(L × R × C) where L = unmatched LHS count, R = unmatched RHS count, C = column count. Acceptable for MVP volumes.
 
 ---
 
@@ -776,14 +786,16 @@ def serialize_report(report: dict) -> str:
     """
 ```
 
-**Column classifications in report [BR-11.4]:**
-
-Built by combining schema column names with config classifications. For each column in schema order:
+**FSD-5.9.1 [BR-11.4]:** Column classifications in report — built by combining schema column names with config classifications. For each column in schema order:
 - If in `excluded_columns` → classification `"EXCLUDED"`, include reason.
 - If in `fuzzy_columns` → classification `"FUZZY"`, include reason, tolerance, tolerance_type.
 - Otherwise → classification `"STRICT"`, reason is null [BR-5.5].
 
-**Report JSON structure:** See Section 7 for the complete schema.
+**FSD-5.9.2:** `build_report` takes `schema: SchemaInfo` — this is the LHS schema (or RHS; they are identical after schema validation passes).
+
+**FSD-5.9.3 [BR-11.3]:** `config_raw` is the raw parsed YAML dict, echoed verbatim in the report `config` section.
+
+**FSD-5.9.4:** Report JSON structure: see Section 7 for the complete schema.
 
 ---
 
@@ -808,82 +820,99 @@ def run(config_path: Path, lhs_path: Path, rhs_path: Path) -> dict:
 
 **Pipeline steps (in order):**
 
+**FSD-5.10.1:** Step 0 — Load & validate config:
 ```
-Step 0: Load & validate config
-  config, config_raw = config.load_config(config_path)
-  On failure: ConfigError → exit 2
-
-Step 1: Create reader & load data [BR-4.7]
-  reader = create_reader(config)
-  lhs_result = reader.read(lhs_path, config.encoding)
-  rhs_result = reader.read(rhs_path, config.encoding)
-  On encoding failure: EncodingError → exit 2 [BR-4.8]
-  On file not found: FileNotFoundError → exit 2
-  On empty parquet dir: ReaderError → exit 2
-
-Step 2: Line break check — CSV only [BR-4.1–6]
-  if config.reader == CSV:
-      line_break_mismatch = (lhs_result.line_break_style != rhs_result.line_break_style)
-  else:
-      line_break_mismatch = None  # Not applicable to parquet [BR-4.6]
-  Continue regardless of result [BR-4.4]
-
-Step 3: Schema validation [BR-4.9]
-  schema_mismatches = validate_schema(
-      lhs_result.schema, rhs_result.schema, config.reader
-  )
-  If mismatches:
-      return build_schema_fail_report(...)  # FAIL report, exit 1
-      No further pipeline steps execute.
-
-Step 4: Header/trailer comparison — CSV only [BR-3.13–14]
-  if config.reader == CSV:
-      header_comparison = compare_lines(lhs_result.header_lines, rhs_result.header_lines)
-      trailer_comparison = compare_lines(lhs_result.trailer_lines, rhs_result.trailer_lines)
-  else:
-      header_comparison = None
-      trailer_comparison = None
-  Cross-file comparison only [BR-11.7]. No internal consistency checks [BR-11.8].
-
-Step 5: Hash [BR-4.14–16]
-  excluded_names = {col.name for col in config.excluded_columns}
-  fuzzy_names = {col.name for col in config.fuzzy_columns}
-  lhs_hashed = hash_rows(lhs_result.rows, excluded_names, fuzzy_names, lhs_result.schema.column_names)
-  rhs_hashed = hash_rows(rhs_result.rows, excluded_names, fuzzy_names, rhs_result.schema.column_names)
-
-Step 6: Diff [BR-4.17–22]
-  diff_result = diff(lhs_hashed, rhs_hashed, config.fuzzy_columns)
-
-Step 7: Correlate unmatched rows [BR-11.10–12]
-  non_excluded_columns = [c for c in lhs_result.schema.column_names if c not in excluded_names]
-  correlation = correlate(
-      diff_result.all_unmatched_lhs,
-      diff_result.all_unmatched_rhs,
-      non_excluded_columns,
-  )
-
-Step 8: Compute summary
-  match_percentage = compute_match_percentage(diff_result)  # See §5.6
-  result = determine_result(match_percentage, config.threshold,
-                            diff_result.all_fuzzy_failures,
-                            line_break_mismatch)  # See §5.10.1
-
-Step 9: Build report [BR-11.1]
-  summary = ComparisonSummary(
-      row_count_lhs=diff_result.total_lhs,
-      row_count_rhs=diff_result.total_rhs,
-      match_count=...,
-      mismatch_count=...,
-      match_percentage=match_percentage,
-      result=result,
-      threshold=config.threshold,
-      line_break_mismatch=line_break_mismatch,
-  )
-  return build_report(...)
+config, config_raw = config.load_config(config_path)
+On failure: ConfigError → exit 2
 ```
 
-#### 5.10.1 PASS/FAIL Determination [BR-11.25–26]
+**FSD-5.10.2 [BR-4.7]:** Step 1 — Create reader & load data:
+```
+reader = create_reader(config)
+lhs_result = reader.read(lhs_path, config.encoding)
+rhs_result = reader.read(rhs_path, config.encoding)
+On encoding failure: EncodingError → exit 2 [BR-4.8]
+On file not found: FileNotFoundError → exit 2
+On empty parquet dir: ReaderError → exit 2
+```
 
+**FSD-5.10.3 [BR-4.1–6]:** Step 2 — Line break check (CSV only):
+```
+if config.reader == CSV:
+    line_break_mismatch = (lhs_result.line_break_style != rhs_result.line_break_style)
+else:
+    line_break_mismatch = None  # Not applicable to parquet [BR-4.6]
+Continue regardless of result [BR-4.4]
+```
+
+**FSD-5.10.4 [BR-4.9]:** Step 3 — Schema validation:
+```
+schema_mismatches = validate_schema(lhs_result.schema, rhs_result.schema, config.reader)
+If mismatches:
+    return build_schema_fail_report(...)  # FAIL report, exit 1
+    No further pipeline steps execute.
+```
+
+**FSD-5.10.5 [BR-3.13–14]:** Step 4 — Header/trailer comparison (CSV only):
+```
+if config.reader == CSV:
+    header_comparison = compare_lines(lhs_result.header_lines, rhs_result.header_lines)
+    trailer_comparison = compare_lines(lhs_result.trailer_lines, rhs_result.trailer_lines)
+else:
+    header_comparison = None
+    trailer_comparison = None
+Cross-file comparison only [BR-11.7]. No internal consistency checks [BR-11.8].
+```
+
+**FSD-5.10.6 [BR-4.14–16]:** Step 5 — Hash:
+```
+excluded_names = {col.name for col in config.excluded_columns}
+fuzzy_names = {col.name for col in config.fuzzy_columns}
+lhs_hashed = hash_rows(lhs_result.rows, excluded_names, fuzzy_names, lhs_result.schema.column_names)
+rhs_hashed = hash_rows(rhs_result.rows, excluded_names, fuzzy_names, rhs_result.schema.column_names)
+```
+
+**FSD-5.10.7 [BR-4.17–22]:** Step 6 — Diff:
+```
+diff_result = diff(lhs_hashed, rhs_hashed, config.fuzzy_columns)
+```
+
+**FSD-5.10.8 [BR-11.10–12]:** Step 7 — Correlate unmatched rows:
+```
+non_excluded_columns = [c for c in lhs_result.schema.column_names if c not in excluded_names]
+correlation = correlate(
+    diff_result.all_unmatched_lhs,
+    diff_result.all_unmatched_rhs,
+    non_excluded_columns,
+)
+```
+
+**FSD-5.10.9:** Step 8 — Compute summary:
+```
+match_percentage = compute_match_percentage(diff_result)  # See FSD-5.6.10
+match_count = diff_result.total_matched // 2              # See FSD-4.11
+mismatch_count = max(diff_result.total_lhs, diff_result.total_rhs) - match_count
+result = determine_result(...)                            # See FSD-5.10.11
+```
+
+**FSD-5.10.10 [BR-11.1]:** Step 9 — Build report:
+```
+summary = ComparisonSummary(
+    row_count_lhs=diff_result.total_lhs,
+    row_count_rhs=diff_result.total_rhs,
+    match_count=match_count,
+    mismatch_count=mismatch_count,
+    match_percentage=match_percentage,
+    result=result,
+    threshold=config.threshold,
+    line_break_mismatch=line_break_mismatch,
+)
+return build_report(...)
+```
+
+#### 5.10.1 PASS/FAIL Determination
+
+**FSD-5.10.11 [BR-11.25–26]:**
 ```python
 result = "PASS" if ALL of the following:
     match_percentage >= config.threshold     # [BR-11.22]
@@ -898,6 +927,7 @@ A comparison can have 100% hash-level match and still FAIL if a FUZZY column exc
 
 #### 5.10.2 `compare_lines` helper
 
+**FSD-5.10.12 [BR-3.13]:**
 ```python
 def compare_lines(
     lhs_lines: tuple[str, ...] | None,
@@ -905,7 +935,7 @@ def compare_lines(
 ) -> list[HeaderTrailerResult]:
     """Compare header or trailer lines positionally.
 
-    Exact string match per position [BR-3.13].
+    Exact string match per position.
     If line counts differ, missing lines compared against empty string.
     """
 ```
@@ -916,62 +946,71 @@ def compare_lines(
 
 ### 6.1 Null Handling
 
-**Parquet [BR-8.1]:** Pyarrow provides native null support. Null is null — distinct from empty string. In the hash engine, null values are represented as the sentinel string `"__PROOFMARK_NULL__"` for concatenation and hashing. Two nulls in the same column position produce the same hash contribution [BR-8.4].
+**FSD-6.1 [BR-8.1]:** Parquet: pyarrow provides native null support. Null is null — distinct from empty string. In the hash engine, null values are represented as the sentinel string `"__PROOFMARK_NULL__"` for concatenation and hashing. Two nulls in the same column position produce the same hash contribution [BR-8.4].
 
-**CSV [BR-8.2–3]:** Byte-level comparison. No null equivalence, no null normalization. An empty field (`,,`), the literal `"NULL"`, the literal `"null"`, and the literal `""` are four distinct values. They hash differently. The rewrite process is responsible for matching the original's null representation.
+**FSD-6.2 [BR-8.2–3]:** CSV: byte-level comparison. No null equivalence, no null normalization. An empty field (`,,`), the literal `"NULL"`, the literal `"null"`, and the literal `""` are four distinct values. They hash differently. The rewrite process is responsible for matching the original's null representation.
 
 ### 6.2 Column Ordering
 
-All operations that iterate over columns use **schema order** — the order columns appear in the reader's output. This ensures:
+**FSD-6.3:** All operations that iterate over columns use **schema order** — the order columns appear in the reader's output. This ensures:
 - Hash computation is deterministic (same column concat order every time).
 - Unhashed content strings are deterministic.
 - Column classifications in the report are in a predictable, stable order.
 
-### 6.3 Encoding [BR-9.1–5]
+### 6.3 Encoding
 
+**FSD-6.4 [BR-9.1–5]:**
 - Both LHS and RHS are always read with the **same** encoding setting [BR-9.4].
 - Default: UTF-8 [BR-9.1]. Configurable via config `encoding` field.
 - Invalid encoding (file can't be decoded) → `EncodingError` → exit 2 [BR-9.2].
 - No encoding detection. No encoding normalization [BR-9.3].
 - The rewrite process is responsible for producing output in the expected encoding [BR-9.5].
 
-### 6.4 Header/Trailer Comparison [BR-3.13–14, BR-11.6–8]
+### 6.4 Header/Trailer Comparison
 
+**FSD-6.5 [BR-3.13–14, BR-11.6–8]:**
 - Compared **independently** from the hash-sort-diff pipeline [BR-3.13].
 - Comparison is exact literal string match, positional (first header vs first header, etc.).
 - Both results appear in the report [BR-3.14, BR-11.6].
-- Cross-file comparison only (LHS trailer vs RHS trailer). No internal consistency validation (e.g., trailer claims 5000 rows but data has 4999) [BR-11.7, BR-11.8]. This is consistent with the attestation disclaimer — Proofmark certifies equivalence, not correctness.
-- Header/trailer mismatches do **NOT** independently cause FAIL. They do not appear in the PASS/FAIL conditions [BR-11.25]. They are reported for human review.
+- Cross-file comparison only (LHS trailer vs RHS trailer). No internal consistency validation (e.g., trailer claims 5000 rows but data has 4999) [BR-11.7, BR-11.8]. Consistent with the attestation disclaimer — Proofmark certifies equivalence, not correctness.
+
+**FSD-6.6:** Header/trailer mismatches do **NOT** independently cause FAIL. They do not appear in the PASS/FAIL conditions [BR-11.25]. They are reported for human review.
 
 ### 6.5 Zero-Row Edge Case
 
-When both LHS and RHS have zero data rows:
+**FSD-6.7:** When both LHS and RHS have zero data rows:
 - `total_rows = 0`.
 - `match_percentage = 100.0` by definition — nothing to mismatch [test scenario 59].
 - Result: PASS (assuming no other failure conditions).
 - Schema validation still runs — schemas can mismatch even with zero rows.
 
-### 6.6 Attestation [BR-1.1]
+### 6.6 Attestation
 
-Every report includes the fixed attestation string:
+**FSD-6.8 [BR-1.1]:** Every report includes the fixed attestation string:
 
 > Output equivalence certifies equivalence to the original, NOT correctness in an absolute sense. If the original has a bug and the rewrite faithfully reproduces it, Proofmark reports PASS.
 
 Not configurable. Always present.
 
-### 6.7 Line Break Checking [BR-4.1–6]
+### 6.7 Line Break Checking
 
-- **Pre-comparison check (CSV only):** Before any data processing, compare line break styles between LHS and RHS [BR-4.1].
-- **Detection method:** Read file as raw bytes. Presence of `\r\n` → `"CRLF"`. Otherwise → `"LF"`.
-- **On mismatch [BR-4.2]:** Set `line_break_mismatch = True`. This contributes to FAIL [BR-11.25].
-- **Continue regardless [BR-4.4]:** The full comparison runs. Report includes both the match rate AND the line break mismatch flag [BR-4.5].
-- **Internal normalization [BR-4.3]:** Both files are normalized to `\n` internally for row splitting. This does not affect the mismatch flag (which was set from raw bytes).
-- **Parquet [BR-4.6]:** Line break check does not apply. `line_break_mismatch` is `None` in the report.
+**FSD-6.9 [BR-4.1]:** Pre-comparison check (CSV only): before any data processing, compare line break styles between LHS and RHS.
 
-### 6.8 Hash Algorithm [BR-10.1–2]
+**FSD-6.10:** Detection method: read file as raw bytes. Presence of `\r\n` → `"CRLF"`. Otherwise → `"LF"`.
 
-- MVP uses MD5. Fast, good distribution, collision risk irrelevant for comparison hash (we're not doing security).
-- Algorithm name is NOT surfaced in report output [BR-10.2]. This is an implementation detail.
+**FSD-6.11 [BR-4.2, BR-11.25]:** On mismatch: set `line_break_mismatch = True`. This contributes to FAIL.
+
+**FSD-6.12 [BR-4.4, BR-4.5]:** Continue regardless: the full comparison runs. Report includes both the match rate AND the line break mismatch flag.
+
+**FSD-6.13 [BR-4.3]:** Internal normalization: both files are normalized to `\n` internally for row splitting. This does not affect the mismatch flag (which was set from raw bytes).
+
+**FSD-6.14 [BR-4.6]:** Parquet: line break check does not apply. `line_break_mismatch` is `None` in the report.
+
+### 6.8 Hash Algorithm
+
+**FSD-6.15 [BR-10.1]:** MVP uses MD5. Fast, good distribution, collision risk irrelevant for comparison hash (not doing security).
+
+**FSD-6.16 [BR-10.2]:** Algorithm name is NOT surfaced in report output. This is an implementation detail.
 
 ---
 
@@ -1073,6 +1112,7 @@ This is the complete JSON structure that `report.py` produces. Every field maps 
   ],
 
   "mismatches": {
+    "schema_mismatches": null,
     "hash_groups": [
       {
         "hash_value": "a1b2c3d4e5f67890abcdef1234567890",
@@ -1127,21 +1167,25 @@ This is the complete JSON structure that `report.py` produces. Every field maps 
 }
 ```
 
-**Field rules:**
-- `header_comparison`, `trailer_comparison`: present for CSV, `null` for parquet [BR-11.6].
-- `summary.line_break_mismatch`: present for CSV, `null` for parquet [BR-4.6].
-- `mismatches.hash_groups`: only groups with issues. Fully matched groups omitted [BR-11.20].
-- `mismatches.correlation`: always present (may have empty lists).
-- `attestation`: always present, fixed text [BR-1.1].
-- `config`: full echo of the raw YAML content as parsed [BR-11.3].
-- `metadata.proofmark_version`: from package metadata (`importlib.metadata.version("proofmark")`).
-- `metadata.timestamp`: ISO 8601 UTC at report generation time.
+**FSD-7.1 [BR-11.2]:** `metadata` includes `timestamp` (ISO 8601 UTC), `proofmark_version` (from `importlib.metadata.version("proofmark")`), `comparison_target`, and `config_path`.
 
-**Schema mismatch report:** When schema validation fails, the report has the same top-level structure but:
-- `summary.result` = `"FAIL"`.
-- `summary.match_count` = 0, `mismatch_count` = 0, `match_percentage` = 0.0.
-- `mismatches` = `{"schema_mismatches": ["Column count: LHS=5, RHS=4", ...], "hash_groups": [], "correlation": {"correlated_pairs": [], "uncorrelated_lhs": [], "uncorrelated_rhs": []}}`.
-- No header/trailer comparison (pipeline didn't get that far).
+**FSD-7.2 [BR-11.3]:** `config` is the full echo of the raw YAML content as parsed.
+
+**FSD-7.3 [BR-11.4]:** `column_classifications` lists every column in schema order with classification, reason, tolerance, and tolerance_type.
+
+**FSD-7.4 [BR-11.6]:** `header_comparison` and `trailer_comparison`: present for CSV, `null` for parquet.
+
+**FSD-7.5:** `summary.line_break_mismatch`: present for CSV, `null` for parquet [BR-4.6].
+
+**FSD-7.6 [BR-11.20]:** `mismatches.hash_groups`: only groups with issues (COUNT_MISMATCH or FUZZY failures). Fully matched groups omitted.
+
+**FSD-7.7:** `mismatches.schema_mismatches`: `null` for normal reports. Populated with mismatch description strings when schema validation fails.
+
+**FSD-7.8:** `mismatches.correlation`: always present (may have empty lists).
+
+**FSD-7.9 [BR-1.1]:** `attestation`: always present, fixed text.
+
+**FSD-7.10:** Schema mismatch report: same top-level structure. `summary.result = "FAIL"`, `match_count = 0`, `mismatch_count = 0`, `match_percentage = 0.0`. `mismatches.schema_mismatches` populated. No header/trailer comparison (pipeline short-circuited). `hash_groups` empty. `correlation` empty.
 
 ---
 
@@ -1149,6 +1193,7 @@ This is the complete JSON structure that `report.py` produces. Every field maps 
 
 ### 8.1 Exception Hierarchy
 
+**FSD-8.1:**
 ```python
 class ProofmarkError(Exception):
     """Base exception for all Proofmark errors."""
@@ -1165,23 +1210,27 @@ class EncodingError(ReaderError):
 
 ### 8.2 Error-to-Exit-Code Mapping
 
-| Error | Source | Exit Code | Report Generated? |
-|-------|--------|-----------|-------------------|
-| `ConfigError` | `config.load_config()` | 2 | No |
-| `FileNotFoundError` | Reader, CLI | 2 | No |
-| `ReaderError` (empty dir, parse fail) | Reader | 2 | No |
-| `EncodingError` | CSV reader | 2 | No |
-| Schema mismatch | `schema.validate_schema()` | 1 | Yes (FAIL report) |
-| Comparison FAIL | Pipeline | 1 | Yes (FAIL report) |
-| Comparison PASS | Pipeline | 0 | Yes (PASS report) |
-| `ValueError` (non-numeric FUZZY) | `tolerance.check_fuzzy()` | 2 | No |
-| Unexpected exception | Any | 2 | No |
+**FSD-8.2:**
+
+| Error | Source | Exit Code | Report Generated? | FSD |
+|-------|--------|-----------|-------------------|-----|
+| `ConfigError` | `config.load_config()` | 2 | No | FSD-8.3 |
+| `FileNotFoundError` | Reader, CLI | 2 | No | FSD-8.4 |
+| `ReaderError` (empty dir, parse fail) | Reader | 2 | No | FSD-8.5 |
+| `EncodingError` | CSV reader | 2 | No | FSD-8.6 |
+| Schema mismatch | `schema.validate_schema()` | 1 | Yes (FAIL report) | FSD-8.7 |
+| Comparison FAIL | Pipeline | 1 | Yes (FAIL report) | FSD-8.8 |
+| Comparison PASS | Pipeline | 0 | Yes (PASS report) | FSD-8.9 |
+| `ValueError` (non-numeric FUZZY) | `tolerance.check_fuzzy()` | 2 | No | FSD-8.10 |
+| Unexpected exception | Any | 2 | No | FSD-8.11 |
 
 ### 8.3 Error Output
 
-- Exit code 2 errors: Print a human-readable error message to stderr. No JSON output.
-- Exit code 1 (schema mismatch, comparison FAIL): Full JSON report to stdout or `--output` file. The report itself documents the failure.
-- Exit code 0: Full JSON report.
+**FSD-8.12:** Exit code 2 errors: print a human-readable error message to stderr. No JSON output.
+
+**FSD-8.13:** Exit code 1 (schema mismatch, comparison FAIL): full JSON report to stdout or `--output` file. The report itself documents the failure.
+
+**FSD-8.14:** Exit code 0: full JSON report.
 
 ---
 
@@ -1189,49 +1238,49 @@ class EncodingError(ReaderError):
 
 Every BR ID from the BRD v3 is accounted for below. Module assignments show where each requirement is implemented.
 
-| BR Range | Module(s) | FSD Section |
-|----------|-----------|-------------|
-| BR-1.1 | report.py | §5.9, §6.6 |
-| BR-2.1–2.7 | (scope definition — no module) | §1.1 |
-| BR-3.1–3.2 | pipeline.py, cli.py | §1.1, §5.1 |
-| BR-3.3–3.4 | pipeline.py | §1.1 |
-| BR-3.5 | pipeline.py | §1.1 |
-| BR-3.6 | config.py, readers/__init__.py | §5.2, §5.3.1 |
-| BR-3.7–3.9 | readers/parquet.py | §5.3.2 |
-| BR-3.10–3.14 | readers/csv_reader.py, pipeline.py | §5.3.3, §5.10 |
-| BR-3.15–3.16 | readers/parquet.py | §5.3.2 |
+| BR Range | Module(s) | FSD IDs |
+|----------|-----------|---------|
+| BR-1.1 | report.py | FSD-1.6, FSD-6.8, FSD-7.9 |
+| BR-2.1–2.7 | (scope definition — no module) | FSD-1.1–1.4 |
+| BR-3.1–3.2 | pipeline.py, cli.py | FSD-1.1, FSD-1.2 |
+| BR-3.3–3.4 | pipeline.py | FSD-1.3 |
+| BR-3.5 | pipeline.py | FSD-1.4 |
+| BR-3.6 | config.py, readers/__init__.py | FSD-4.1, FSD-5.2.4, FSD-5.3.1 |
+| BR-3.7–3.9 | readers/parquet.py | FSD-5.3.3–5.3.6 |
+| BR-3.10–3.14 | readers/csv_reader.py, pipeline.py | FSD-5.3.15, FSD-5.10.5 |
+| BR-3.15–3.16 | readers/parquet.py | FSD-5.3.6, FSD-5.3.10 |
 | BR-3.17–3.18 | (terminology — no code) | — |
-| BR-4.1–4.6 | pipeline.py, readers/csv_reader.py | §5.10, §6.7 |
-| BR-4.7–4.8 | pipeline.py, readers/* | §5.10 |
-| BR-4.9–4.13 | schema.py | §5.4 |
-| BR-4.14–4.16 | hasher.py | §5.5 |
-| BR-4.17–4.22 | diff.py | §5.6 |
-| BR-4.23 | report.py | §5.9 |
-| BR-5.1 | config.py | §5.2 |
-| BR-5.2–5.3 | config.py, hasher.py | §5.2, §5.5 |
-| BR-5.4–5.5 | hasher.py, config.py | §5.5, §5.2 |
-| BR-5.6–5.8 | config.py, tolerance.py | §5.2, §5.7 |
-| BR-5.9–5.10 | config.py, report.py | §5.2, §5.9 |
-| BR-6.1–6.5 | config.py | §5.2 |
-| BR-6.6–6.8 | config.py, cli.py | §5.2, §5.1 |
-| BR-7.1–7.8 | tolerance.py, config.py | §5.7, §5.2 |
-| BR-8.1–8.4 | hasher.py | §5.5, §6.1 |
-| BR-9.1–9.5 | readers/csv_reader.py, pipeline.py | §5.3.3, §6.3 |
-| BR-10.1–10.2 | hasher.py | §5.5, §6.8 |
-| BR-11.1–11.5 | report.py | §5.9, §7 |
-| BR-11.6–11.8 | report.py, pipeline.py | §5.9, §6.4 |
-| BR-11.9 | report.py, diff.py | §5.9, §5.6, §7 |
-| BR-11.10–11.12 | correlator.py | §5.8 |
-| BR-11.13–11.18 | diff.py, pipeline.py | §5.6 |
-| BR-11.19–11.21 | report.py | §5.9, §7 |
-| BR-11.22–11.26 | pipeline.py, report.py | §5.10.1 |
-| BR-12.1–12.4 | cli.py | §5.1 |
-| BR-12.5 | cli.py, pipeline.py | §5.1 |
-| BR-12.6–12.8 | cli.py | §5.1 |
-| BR-12.9 | cli.py | §5.1 |
-| BR-12.10–12.13 | (not supported in MVP) | §5.1 |
+| BR-4.1–4.6 | pipeline.py, readers/csv_reader.py | FSD-5.3.11, FSD-5.10.3, FSD-6.9–6.14 |
+| BR-4.7–4.8 | pipeline.py, readers/* | FSD-5.10.2 |
+| BR-4.9–4.13 | schema.py | FSD-5.4.1–5.4.5 |
+| BR-4.14–4.16 | hasher.py | FSD-5.5.1, FSD-5.5.6, FSD-5.5.7 |
+| BR-4.17–4.22 | diff.py | FSD-5.6.1–5.6.8 |
+| BR-4.23 | report.py | FSD-5.9.1 |
+| BR-5.1 | config.py | FSD-5.2.10 |
+| BR-5.2–5.3 | config.py, hasher.py | FSD-5.2.8, FSD-5.5.1 |
+| BR-5.4–5.5 | hasher.py, config.py | FSD-1.5, FSD-4.4, FSD-5.5.2 |
+| BR-5.6–5.8 | config.py, tolerance.py | FSD-4.3, FSD-5.2.5–5.2.9 |
+| BR-5.9–5.10 | config.py, report.py | FSD-1.5, FSD-5.9.1 |
+| BR-6.1–6.5 | config.py | FSD-5.2.12 |
+| BR-6.6–6.8 | config.py, cli.py | FSD-5.2.2, FSD-5.2.14 |
+| BR-7.1–7.8 | tolerance.py, config.py | FSD-5.7.1–5.7.7 |
+| BR-8.1–8.4 | hasher.py | FSD-5.5.4, FSD-5.5.5, FSD-6.1, FSD-6.2 |
+| BR-9.1–9.5 | readers/csv_reader.py, pipeline.py | FSD-5.3.12, FSD-6.4 |
+| BR-10.1–10.2 | hasher.py | FSD-5.5.7, FSD-6.15, FSD-6.16 |
+| BR-11.1–11.5 | report.py | FSD-5.9.1, FSD-7.1, FSD-7.3 |
+| BR-11.6–11.8 | report.py, pipeline.py | FSD-6.5, FSD-6.6, FSD-7.4 |
+| BR-11.9 | report.py, diff.py | FSD-4.7, FSD-4.12, FSD-7.6 |
+| BR-11.10–11.12 | correlator.py | FSD-5.8.4–5.8.6 |
+| BR-11.13–11.18 | diff.py, pipeline.py | FSD-4.9, FSD-5.6.9–5.6.11 |
+| BR-11.19–11.21 | report.py | FSD-7.6 |
+| BR-11.22–11.26 | pipeline.py, report.py | FSD-5.10.11 |
+| BR-12.1–12.4 | cli.py | FSD-5.1.2–5.1.5 |
+| BR-12.5 | cli.py, pipeline.py | FSD-1.1 |
+| BR-12.6–12.8 | cli.py | FSD-5.1.7–5.1.9 |
+| BR-12.9 | cli.py | FSD-5.1.6 |
+| BR-12.10–12.13 | (not supported in MVP) | FSD-5.1.12 |
 | BR-13.1 | (out of scope) | — |
-| BR-14.1 | readers/csv_reader.py | §5.3.3 |
+| BR-14.1 | readers/csv_reader.py | FSD-5.3.16 |
 | BR-16.1 | (out of scope) | — |
 
 ---
@@ -1240,18 +1289,18 @@ Every BR ID from the BRD v3 is accounted for below. Module assignments show wher
 
 This FSD advances the following TAR register items:
 
-| TAR Item | Coverage |
-|----------|----------|
-| T-01: Comparison Engine Core | §5.5 (hasher), §5.6 (diff), §5.7 (tolerance) |
-| T-02: Parquet Reader | §5.3.2 |
-| T-03: CSV Reader (Simple) | §5.3.3 |
-| T-04: CSV Trailing Control Record | §5.3.3 (trailer_rows), §6.4 |
-| T-05: Per-Job Config Schema | §5.2 |
-| T-06: Report Generator | §5.9, §7 |
-| T-12: TDD/BDD Test Suite | §2 (test file structure maps to 60 BDD scenarios) |
+| TAR Item | FSD Coverage |
+|----------|-------------|
+| T-01: Comparison Engine Core | FSD-5.5.* (hasher), FSD-5.6.* (diff), FSD-5.7.* (tolerance) |
+| T-02: Parquet Reader | FSD-5.3.3–5.3.10 |
+| T-03: CSV Reader (Simple) | FSD-5.3.11–5.3.19 |
+| T-04: CSV Trailing Control Record | FSD-5.3.15 (trailer_rows), FSD-6.5–6.6 |
+| T-05: Per-Job Config Schema | FSD-5.2.* |
+| T-06: Report Generator | FSD-5.9.*, FSD-7.* |
+| T-12: TDD/BDD Test Suite | Appendix A (test file mapping to 60 BDD scenarios) |
 | AC-01: Proofmark Maturity | This document IS the functional specification |
-| AC-24: Attestation Problem | §6.6 (fixed attestation text in every report) |
-| AC-25: Information Isolation | §1.1 (portability test — zero platform knowledge) |
+| AC-24: Attestation Problem | FSD-6.8 (fixed attestation text in every report) |
+| AC-25: Information Isolation | FSD-1.2 (portability test — zero platform knowledge) |
 
 ---
 
@@ -1264,11 +1313,36 @@ Each test file maps to one or more feature areas from the Test Architecture v2. 
 | `test_parquet_reader.py` | parquet_reader | 1–4 | `parquet/identical_*`, `parquet/data_mismatch`, `parquet/empty_directory` |
 | `test_csv_reader.py` | csv_reader | 5–9 | `csv/simple_match`, `csv/with_trailer_match`, `csv/header_mismatch`, `csv/trailer_mismatch`, `csv/data_mismatch` |
 | `test_schema.py` | schema_validation | 10–13 | `parquet/schema_mismatch_*` |
-| `test_hasher.py` | column_classification, hash_sort_diff | 14–16, 19, 24–26 | `parquet/excluded_*`, `parquet/fuzzy_*`, `parquet/different_row_order`, `parquet/mixed_classification` |
+| `test_hasher.py` | column_classification, hash_sort_diff, null_handling | 14–16, 19–21, 24–26 | `parquet/excluded_*`, `parquet/fuzzy_*`, `parquet/different_row_order`, `parquet/mixed_classification`, `parquet/with_nulls`, `parquet/null_vs_empty_string` |
 | `test_diff.py` | hash_sort_diff, row_count | 24–25, 58–60 | `parquet/different_row_order`, `parquet/duplicate_rows`, `parquet/row_count_mismatch`, `parquet/zero_rows` |
 | `test_tolerance.py` | column_classification (FUZZY) | 16–18, 32–35 | `parquet/fuzzy_*` |
 | `test_correlator.py` | report_output (correlation) | 43–44 | `parquet/correlation_*` |
 | `test_report.py` | report_output | 36–42 | Various |
 | `test_config.py` | config_validation | 50–57 | `configs/*` |
 | `test_cli.py` | cli | 45–49 | Various |
-| `test_pipeline.py` | (end-to-end) | 27–31, 38–39, 41, 42 | `csv/crlf_vs_lf`, `csv/encoding_*`, `parquet/threshold_*` |
+| `test_pipeline.py` | (end-to-end) | 22–23, 27–31, 38–39, 41, 42 | `csv/crlf_vs_lf`, `csv/encoding_*`, `csv/null_*`, `parquet/threshold_*` |
+
+---
+
+## Appendix B: FSD Tag Index
+
+Total FSD tags: 112
+
+| Range | Section | Count |
+|-------|---------|-------|
+| FSD-1.1–1.6 | Design Principles | 6 |
+| FSD-3.1 | Dependencies | 1 |
+| FSD-4.1–4.12 | Data Model | 12 |
+| FSD-5.1.1–5.1.12 | CLI | 12 |
+| FSD-5.2.1–5.2.14 | Configuration | 14 |
+| FSD-5.3.1–5.3.19 | Readers | 19 |
+| FSD-5.4.1–5.4.5 | Schema Validator | 5 |
+| FSD-5.5.1–5.5.11 | Hash Engine | 11 |
+| FSD-5.6.1–5.6.11 | Diff Engine | 11 |
+| FSD-5.7.1–5.7.7 | Tolerance | 7 |
+| FSD-5.8.1–5.8.7 | Correlator | 7 |
+| FSD-5.9.1–5.9.4 | Report Generator | 4 |
+| FSD-5.10.1–5.10.12 | Pipeline | 12 |
+| FSD-6.1–6.16 | Cross-Cutting | 16 |
+| FSD-7.1–7.10 | Report JSON Schema | 10 |
+| FSD-8.1–8.14 | Error Handling | 14 |
