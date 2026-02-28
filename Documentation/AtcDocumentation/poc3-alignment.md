@@ -306,6 +306,7 @@ Key beats:
 | **BRD (v3, approved)** | What to build. Vendor-handoff-ready product spec. | `BusinessRequirements/BRD-v3-approved.md` |
 | **This document** | Why we're building it and how it fits our program. | `AtcDocumentation/poc3-alignment.md` |
 | **Scope and Intent** | What Proofmark IS and IS NOT. The production path. | `AtcDocumentation/scope-and-intent.md` |
+| **BRD v3 Provenance** | How the BRD was produced, authorship model, skeptic rebuttals. | `AtcDocumentation/brd-v3-provenance.md` |
 | **Test Architecture** | BDD scenarios for the MVP build. | `Documentation/test-architecture.md` |
 | **TAR Register** | Adversarial review — every concern the CIO/CRO might raise. | `ai-dev-playbook/Projects/ATC/adversarial-review/06-program-tar-register.md` |
 | **Design Sessions** | Raw decision logs from Dan + Claude design conversations. | `BusinessRequirements/SupportingDocumentation/design-sessions/` |

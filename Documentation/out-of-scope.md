@@ -24,5 +24,10 @@
 - Architecture supports them via pluggable readers, but not implementing this weekend
 - **Revisit:** After CSV and parquet readers are solid. EBCDIC may require specialist knowledge (or a very patient Claude).
 
+### FUZZY Classification on Non-Numeric Columns
+- Currently FUZZY only makes sense for numeric types (absolute/relative tolerance is arithmetic).
+- Future consideration: trim-before-compare on string columns would be useful for trailing whitespace from different CSV writers.
+- **Revisit:** Post-MVP. If added, would need a new tolerance_type (e.g., "trim" or "normalize_whitespace") and config validation to reject absolute/relative on string types.
+
 ## Permanently Out of Scope
 - Custom Salesforce ADF pipeline — not ETL, not our problem

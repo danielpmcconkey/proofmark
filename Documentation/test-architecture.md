@@ -1,9 +1,9 @@
 # Proofmark --- Test Architecture and BDD Scenarios
 
-**Version:** 1.0
+**Version:** 2.0
 **Date:** 2026-02-28
 **Status:** Draft --- Pending Dan's Review + Adversarial Review
-**Preceding Artifact:** BRD v1.0
+**Preceding Artifact:** BRD v3.0 (approved 2026-02-28)
 **Next Artifact:** Adversarial review of this document, then test data management
 
 ---
@@ -12,20 +12,22 @@
 
 ### 1.1 Organization
 
-Tests are organized by **feature area**, not by pipeline stage or reader type. Each feature area maps to one or more BRD sections. Feature areas are:
+Tests are organized by **feature area**, not by pipeline stage or reader type. Each feature area maps to one or more BRD v3 sections and BR IDs. Feature areas are:
 
-| Feature Area | BRD Sections | Description |
-|---|---|---|
-| `parquet_reader` | 3.4, 3.5, 4 (Step 1) | Loading and assembling parquet part files |
-| `csv_reader` | 3.4, 4 (Step 1) | Loading CSV with header/trailer handling |
-| `column_classification` | 5, 7 | Tier 1/2/3 behavior including tolerance math |
-| `null_handling` | 8 | Null representation across formats |
-| `hash_sort_diff` | 4 (Steps 2-5) | Exclusion, hashing, sorting, row-level diff |
-| `strictness` | 9 | Line break and encoding strict/normalize modes |
-| `report_output` | 11 | Report structure, content, pass/fail logic |
-| `cli` | 12 | Exit codes, output destination, config flag |
-| `config_validation` | 6 | YAML parsing, required fields, schema enforcement |
-| `row_count` | 4 (Step 5), 11 | Row count mismatch detection |
+| Feature Area | BRD v3 Sections | Key BR IDs | Description |
+|---|---|---|---|
+| `parquet_reader` | 3.4, 3.5, 4 (Step 1) | BR-3.7 through BR-3.9, BR-3.15, BR-3.16 | Loading and assembling parquet part files |
+| `csv_reader` | 3.4, 4 (Step 1) | BR-3.10 through BR-3.14 | Loading CSV with header/trailer handling |
+| `schema_validation` | 4 (Step 2) | BR-4.9 through BR-4.13 | Column count, name, and type validation |
+| `column_classification` | 5, 7 | BR-5.1 through BR-5.10, BR-7.1 through BR-7.8 | EXCLUDED/STRICT/FUZZY behavior including tolerance math |
+| `null_handling` | 8 | BR-8.1 through BR-8.4 | Null representation across formats |
+| `hash_sort_diff` | 4 (Steps 3-6) | BR-4.14 through BR-4.22 | Exclusion, hashing, sorting, row-level diff |
+| `line_break_check` | 4 (Pre-check) | BR-4.1 through BR-4.6 | CSV line break detection and FAIL flag |
+| `encoding` | 9 | BR-9.1 through BR-9.5 | Encoding configuration and error handling |
+| `report_output` | 11 | BR-11.1 through BR-11.26 | Report structure, content, match %, pass/fail logic |
+| `cli` | 12 | BR-12.1 through BR-12.13 | Exit codes, --left/--right/--output paths, config flag |
+| `config_validation` | 6 | BR-6.1 through BR-6.8 | YAML parsing, required fields, schema enforcement |
+| `row_count` | 4 (Step 6), 11 | BR-4.18 through BR-4.20, BR-11.17 | Row count mismatch detection |
 
 This maps cleanly to a directory structure under `tests/`:
 
@@ -38,10 +40,12 @@ tests/
         configs/
     test_parquet_reader.py
     test_csv_reader.py
+    test_schema_validation.py
     test_column_classification.py
     test_null_handling.py
     test_hash_sort_diff.py
-    test_strictness.py
+    test_line_break_check.py
+    test_encoding.py
     test_report_output.py
     test_cli.py
     test_config_validation.py
@@ -57,46 +61,66 @@ Test data lives in `tests/fixtures/` and is version-controlled. No generated fix
 ```
 parquet/
     identical_3part_vs_1part/
-        source_a/                   # 3 part files, same data
+        lhs/                         # 3 part files, same data
             part-00000.parquet
             part-00001.parquet
             part-00002.parquet
-        source_b/                   # 1 part file, coalesced
+        rhs/                         # 1 part file, coalesced
             part-00000.parquet
     identical_simple/
-        source_a/
+        lhs/
             part-00000.parquet
-        source_b/
+        rhs/
             part-00000.parquet
     data_mismatch/
-        source_a/
+        lhs/
             part-00000.parquet
-        source_b/
+        rhs/
             part-00000.parquet
     empty_directory/
-        source_a/                   # Empty
-        source_b/
+        lhs/                         # Empty
+        rhs/
             part-00000.parquet
     with_nulls/
-        source_a/
+        lhs/
             part-00000.parquet
-        source_b/
+        rhs/
             part-00000.parquet
     row_count_mismatch/
-        source_a/
-            part-00000.parquet      # 100 rows
-        source_b/
-            part-00000.parquet      # 99 rows
+        lhs/
+            part-00000.parquet       # 100 rows
+        rhs/
+            part-00000.parquet       # 99 rows
     different_row_order/
-        source_a/
-            part-00000.parquet      # Rows in order A
-        source_b/
-            part-00000.parquet      # Same rows, different order
+        lhs/
+            part-00000.parquet       # Rows in order A
+        rhs/
+            part-00000.parquet       # Same rows, different order
     duplicate_rows/
-        source_a/
-            part-00000.parquet      # Contains 2 identical rows
-        source_b/
-            part-00000.parquet      # Contains 1 of that row
+        lhs/
+            part-00000.parquet       # Contains 2 identical rows
+        rhs/
+            part-00000.parquet       # Contains 1 of that row
+    zero_rows/
+        lhs/
+            part-00000.parquet       # Schema only, 0 data rows
+        rhs/
+            part-00000.parquet       # Schema only, 0 data rows
+    schema_mismatch_column_count/
+        lhs/
+            part-00000.parquet       # 3 columns
+        rhs/
+            part-00000.parquet       # 2 columns
+    schema_mismatch_column_name/
+        lhs/
+            part-00000.parquet       # Column: status
+        rhs/
+            part-00000.parquet       # Column: state
+    schema_mismatch_column_type/
+        lhs/
+            part-00000.parquet       # balance: float64
+        rhs/
+            part-00000.parquet       # balance: int32
 ```
 
 **CSV fixtures** (`tests/fixtures/csv/`):
@@ -104,80 +128,118 @@ parquet/
 ```
 csv/
     simple_match/
-        source_a.csv                # Header + data, no trailer
-        source_b.csv
+        lhs.csv                      # Header + data, no trailer
+        rhs.csv
     with_trailer_match/
-        source_a.csv                # Header + data + trailer row
-        source_b.csv
+        lhs.csv                      # Header + data + trailer row
+        rhs.csv
     data_mismatch/
-        source_a.csv
-        source_b.csv
+        lhs.csv
+        rhs.csv
     header_mismatch/
-        source_a.csv                # Different header text
-        source_b.csv
+        lhs.csv                      # Different header text
+        rhs.csv
     trailer_mismatch/
-        source_a.csv                # Different trailer row count/checksum
-        source_b.csv
+        lhs.csv                      # Different trailer row count/checksum
+        rhs.csv
     null_representations/
-        source_a.csv                # Empty field ,,
-        source_b.csv                # Literal NULL
+        lhs.csv                      # Empty field ,,
+        rhs.csv                      # Literal NULL
     crlf_vs_lf/
-        source_a.csv                # CRLF line endings
-        source_b.csv                # LF line endings
-    encoding_latin1/
-        source_a.csv                # UTF-8
-        source_b.csv                # Latin-1
+        lhs.csv                      # CRLF line endings
+        rhs.csv                      # LF line endings
+    matching_line_breaks/
+        lhs.csv                      # Both LF
+        rhs.csv
+    encoding_utf8/
+        lhs.csv                      # UTF-8 with multi-byte chars (é, ñ, etc.)
+        rhs.csv                      # UTF-8 with same characters
+    encoding_invalid/
+        lhs.csv                      # UTF-8 with multi-byte chars
+        rhs.csv                      # Same file (encoding mismatch is config-driven, not data-driven)
 ```
 
 **Config fixtures** (`tests/fixtures/configs/`):
 
 ```
 configs/
-    parquet_default_strict.yaml
-    parquet_with_tier1_exclusions.yaml
-    parquet_with_tier3_tolerances.yaml
+    parquet_default.yaml
+    parquet_with_exclusions.yaml
+    parquet_with_fuzzy.yaml
     csv_simple.yaml
     csv_with_trailer.yaml
-    csv_normalize_line_breaks.yaml
-    csv_normalize_encoding.yaml
-    mixed_tiers.yaml
+    csv_with_encoding.yaml
+    mixed_classifications.yaml
     threshold_99_percent.yaml
     invalid_missing_reader.yaml
     invalid_unknown_reader.yaml
-    invalid_tier3_no_tolerance_type.yaml
-    invalid_tier3_no_tolerance_value.yaml
-    invalid_missing_sources.yaml
+    invalid_fuzzy_no_tolerance_type.yaml
+    invalid_fuzzy_no_tolerance_value.yaml
+    invalid_missing_comparison_target.yaml
 ```
 
 ### 1.3 Test Data Strategy
 
-Per BRD Section 14 (Decision 15), test data must exercise realistic variance between "original" and "rewritten" outputs. For Proofmark's own test suite, this means:
+Per BRD Section 15 and the ATC POC3 Alignment document (Section 6), test data must exercise realistic variance between "original" and "rewritten" outputs. For Proofmark's own test suite, this means:
 
 - **Parquet fixtures**: Generated using `pyarrow` with deliberate schema and value differences where needed. The generation script is checked in and reviewable, but the fixtures themselves are also checked in so tests don't depend on runtime generation.
 - **CSV fixtures**: Hand-crafted where precision matters (null representations, line endings, encoding). Generated for larger row counts.
-- **Tolerance test data**: Created with different rounding libraries/modes per Decision 15. Source A uses `ROUND_HALF_UP`, source B uses `ROUND_HALF_EVEN` for the same input values. This produces realistic floating-point variance, not hand-tweaked numbers.
+- **Tolerance test data**: Created with different rounding libraries/modes. LHS uses `ROUND_HALF_UP`, RHS uses `ROUND_HALF_EVEN` for the same input values. This produces realistic floating-point variance, not hand-tweaked numbers.
 - **Fixture generation script**: A standalone script at `tests/fixtures/generate_fixtures.py` that produces all fixture files. The script is part of the test infrastructure, not the application. It runs once during test data management (SDLC step 4), and its output is committed.
 
 ### 1.4 BRD Traceability Matrix
 
-Every BDD scenario below includes a `[BRD x.x]` reference. The full traceability:
+Every BDD scenario below includes `[BR-x.x]` references to specific BRD v3 requirements. The full traceability:
 
-| BRD Section | Feature Area(s) | Scenario Count |
+| BRD v3 Section | Feature Area(s) | Scenario Count |
 |---|---|---|
 | 3.4 Two Readers | parquet_reader, csv_reader | 7 |
 | 3.5 Parquet Part Files | parquet_reader | 3 |
-| 4 Comparison Pipeline | hash_sort_diff, row_count | 5 |
+| 4 Comparison Pipeline (Pre-check) | line_break_check | 3 |
+| 4 Comparison Pipeline (Step 1) | parquet_reader, csv_reader | 2 |
+| 4 Comparison Pipeline (Step 2) | schema_validation | 4 |
+| 4 Comparison Pipeline (Steps 3-6) | hash_sort_diff, row_count | 6 |
 | 5 Column Classification | column_classification | 6 |
+| 5 Column Classification (validation) | config_validation | 3 |
 | 6 Configuration | config_validation | 5 |
 | 7 Tolerance Specification | column_classification | 4 |
 | 8 Null Handling | null_handling | 4 |
-| 9 Line Break and Encoding | strictness | 4 |
-| 11 Report Output | report_output | 5 |
+| 9 Encoding | encoding | 2 |
+| 11 Report Output | report_output | 9 |
 | 12 CLI Interface | cli | 5 |
 
-Total: 48 BDD scenarios across 10 feature areas.
+Total: 60 BDD scenarios across 12 feature areas.
 
-### 1.5 pytest Conventions
+### 1.5 Match Percentage Formula
+
+BRD v3 defines the match percentage explicitly (BR-11.13 through BR-11.18). This formula governs all report scenarios:
+
+- **Per hash group**: matched rows = `min(lhs_count, rhs_count) × 2`
+- **Surplus per group**: `|lhs_count - rhs_count|`
+- **Rows unique to one side**: 0 matched, all surplus
+- **Total rows**: `lhs_row_count + rhs_row_count`
+- **Match %**: `total_matched / total_rows`
+- **Special case**: When `total_rows = 0` (both sides have zero data rows), match % = 100.0 by definition. Both sides produced equivalent output (nothing). This is PASS.
+
+Example: LHS has 100 rows, RHS has 100 rows. 99 hash groups match (1 on each side). 1 hash group exists only on LHS, 1 only on RHS.
+- Matched: 99 × 2 = 198
+- Surplus: 1 (LHS only) + 1 (RHS only) = 2
+- Total rows: 100 + 100 = 200
+- Match %: 198 / 200 = 99.0%
+
+### 1.6 PASS/FAIL Conditions
+
+BRD v3 defines PASS as ALL of the following (BR-11.25):
+
+1. Match % >= configured threshold
+2. All STRICT columns are byte-level exact matches
+3. All FUZZY columns are within their configured tolerances
+4. No line break style mismatch (CSV only)
+5. No schema mismatch
+
+FAIL is anything else (BR-11.26). This means a comparison can have 100% match rate at the hash level but still FAIL if a FUZZY column exceeds tolerance or line breaks differ.
+
+### 1.7 pytest Conventions
 
 **Markers:**
 
@@ -215,15 +277,20 @@ def config_fixtures(fixtures_dir):
 
 @pytest.fixture
 def tmp_config(tmp_path):
-    """Factory fixture: builds a YAML config file in tmp_path, returns path."""
+    """Factory fixture: builds a YAML config file in tmp_path, returns path.
+    Config defines HOW to compare (reader, classifications, tolerances,
+    encoding, threshold). Does NOT include LHS/RHS paths (those are CLI args)."""
 
 @pytest.fixture
 def run_comparison():
-    """Invokes the comparison pipeline programmatically. Returns report dict."""
+    """Invokes the comparison pipeline programmatically.
+    Accepts config_path, lhs_path, rhs_path. Returns report dict."""
 
 @pytest.fixture
 def run_cli(tmp_path):
-    """Invokes proofmark CLI as subprocess. Returns (exit_code, stdout, stderr)."""
+    """Invokes proofmark CLI as subprocess.
+    Runs: proofmark compare --config <path> --left <path> --right <path>
+    Returns (exit_code, stdout, stderr)."""
 ```
 
 **Fixture naming:** Fixtures that provide paths end in `_dir` or `_path`. Fixtures that provide data end in `_data`. Factory fixtures are verbs (`run_comparison`, `build_config`).
@@ -231,7 +298,7 @@ def run_cli(tmp_path):
 **Test naming:** `test_{what_is_being_tested}_{expected_outcome}`. Examples:
 - `test_parquet_3parts_vs_1part_passes`
 - `test_csv_data_mismatch_fails_with_detail`
-- `test_tier3_absolute_within_tolerance_passes`
+- `test_fuzzy_absolute_within_tolerance_passes`
 
 ---
 
@@ -239,243 +306,294 @@ def run_cli(tmp_path):
 
 ### Feature: Parquet Reader
 
-#### Scenario: Identical data across different part file counts passes [BRD 3.5]
+#### Scenario: Identical data across different part file counts passes [BR-3.15, BR-3.16]
 
 ```gherkin
-Given a parquet source_a directory with 3 part files containing rows:
+Given a parquet LHS directory with 3 part files containing rows:
     | account_id | balance  | status |
     | 1001       | 5000.00  | active |
     | 1002       | 3200.50  | active |
     | 1003       | 0.00     | closed |
-And a parquet source_b directory with 1 part file containing the same 3 rows
+And a parquet RHS directory with 1 part file containing the same 3 rows
 And a config with reader "parquet" and no column overrides
-When I run the comparison
+When I run the comparison with --left and --right pointing to those directories
 Then the result is PASS
-And the report summary shows row_count_a: 3, row_count_b: 3, match_count: 3, mismatch_count: 0
+And the report summary shows row_count_lhs: 3, row_count_rhs: 3, match_count: 6, mismatch_count: 0
 And match_percentage is 100.0
 ```
 
-#### Scenario: Identical data in matching part file counts passes [BRD 3.4]
+#### Scenario: Identical data in matching part file counts passes [BR-3.7, BR-3.8, BR-3.9]
 
 ```gherkin
-Given a parquet source_a directory with 1 part file containing rows:
+Given a parquet LHS directory with 1 part file containing rows:
     | id | name    | amount |
     | 1  | Alice   | 100.00 |
     | 2  | Bob     | 200.00 |
-And a parquet source_b directory with 1 part file containing the same 2 rows
+And a parquet RHS directory with 1 part file containing the same 2 rows
 And a config with reader "parquet" and no column overrides
 When I run the comparison
 Then the result is PASS
-And the report summary shows match_count: 2, mismatch_count: 0
+And the report summary shows match_count: 4, mismatch_count: 0
 ```
 
-#### Scenario: Data difference detected and reported with detail [BRD 3.4, 11]
+#### Scenario: Data difference detected and reported with detail [BR-3.7, BR-11.9]
 
 ```gherkin
-Given a parquet source_a directory with 1 part file containing rows:
+Given a parquet LHS directory with 1 part file containing rows:
     | account_id | balance |
     | 1001       | 5000.00 |
     | 1002       | 3200.50 |
-And a parquet source_b directory with 1 part file containing rows:
+And a parquet RHS directory with 1 part file containing rows:
     | account_id | balance |
     | 1001       | 5000.00 |
     | 1002       | 3200.99 |
 And a config with reader "parquet" and no column overrides
 When I run the comparison
 Then the result is FAIL
-And the report summary shows match_count: 1, mismatch_count: 1
-And the mismatches section contains an entry with column "balance", value_a "3200.50", value_b "3200.99"
+And the report summary shows match_count: 2, mismatch_count: 2
+And the mismatches section contains a hash group with lhs_count: 1, rhs_count: 0
+And a hash group with lhs_count: 0, rhs_count: 1
 ```
 
-#### Scenario: Empty source directory produces an error [BRD 3.5]
+#### Scenario: Empty LHS directory produces an error [BR-3.15, BR-4.7]
 
 ```gherkin
-Given a parquet source_a directory containing no parquet files
-And a parquet source_b directory with 1 part file containing 1 row
+Given a parquet LHS directory containing no parquet files
+And a parquet RHS directory with 1 part file containing 1 row
 And a config with reader "parquet"
 When I run the comparison
-Then the result is an error
-And the error message indicates source_a contains no parquet files
+Then the result is an error (exit code 2)
+And the error message indicates LHS contains no parquet files
 ```
 
 ---
 
 ### Feature: CSV Reader
 
-#### Scenario: Simple CSV with header, data matches [BRD 3.4]
+#### Scenario: Simple CSV with header, data matches [BR-3.10, BR-3.11]
 
 ```gherkin
-Given a CSV source_a file with content:
+Given a CSV LHS file with content:
     account_id,balance,status
     1001,5000.00,active
     1002,3200.50,active
-And a CSV source_b file with identical content
+And a CSV RHS file with identical content
 And a config with reader "csv", header_rows: 1, trailer_rows: 0
 When I run the comparison
 Then the result is PASS
-And the report summary shows match_count: 2, mismatch_count: 0
+And the report summary shows match_count: 4, mismatch_count: 0
 ```
 
-#### Scenario: CSV with trailing control record, data matches [BRD 3.4]
+#### Scenario: CSV with trailing control record, data matches [BR-3.11, BR-3.13]
 
 ```gherkin
-Given a CSV source_a file with content:
+Given a CSV LHS file with content:
     account_id,balance,status
     1001,5000.00,active
     1002,3200.50,active
     TRAILER|2|2026-02-28
-And a CSV source_b file with identical content
+And a CSV RHS file with identical content
 And a config with reader "csv", header_rows: 1, trailer_rows: 1
 When I run the comparison
 Then the result is PASS
-And the report summary shows match_count: 2, mismatch_count: 0
+And the report summary shows match_count: 4, mismatch_count: 0
+And the header_trailer_comparison section shows all headers and trailers match
 ```
 
-#### Scenario: CSV header row difference detected [BRD 3.4]
+#### Scenario: CSV header row difference detected [BR-3.13, BR-3.14]
 
 ```gherkin
-Given a CSV source_a file with header row "account_id,balance,status"
-And a CSV source_b file with header row "account_id,balance,state"
+Given a CSV LHS file with header row "account_id,balance,status"
+And a CSV RHS file with header row "account_id,balance,state"
 And both files have identical data rows
 And a config with reader "csv", header_rows: 1, trailer_rows: 0
 When I run the comparison
 Then the result is FAIL
-And the report indicates a header mismatch: row 1 differs between sources
+And the report header_trailer_comparison indicates a header mismatch: row 1 differs between LHS and RHS
 ```
 
-#### Scenario: CSV trailer row difference detected [BRD 3.4]
+#### Scenario: CSV trailer row difference detected [BR-3.13, BR-3.14]
 
 ```gherkin
-Given a CSV source_a file with trailer row "TRAILER|2|2026-02-28"
-And a CSV source_b file with trailer row "TRAILER|2|2026-02-27"
+Given a CSV LHS file with trailer row "TRAILER|2|2026-02-28"
+And a CSV RHS file with trailer row "TRAILER|2|2026-02-27"
 And both files have identical header and data rows
 And a config with reader "csv", header_rows: 1, trailer_rows: 1
 When I run the comparison
 Then the result is FAIL
-And the report indicates a trailer mismatch between sources
+And the report header_trailer_comparison indicates a trailer mismatch between LHS and RHS
 ```
 
-#### Scenario: CSV data mismatch in body [BRD 3.4, 11]
+#### Scenario: CSV data mismatch in body [BR-3.10, BR-11.9]
 
 ```gherkin
-Given a CSV source_a file with content:
+Given a CSV LHS file with content:
     account_id,balance
     1001,5000.00
     1002,3200.50
-And a CSV source_b file with content:
+And a CSV RHS file with content:
     account_id,balance
     1001,5000.00
     1002,3200.99
 And a config with reader "csv", header_rows: 1, trailer_rows: 0
 When I run the comparison
 Then the result is FAIL
-And the report summary shows match_count: 1, mismatch_count: 1
-And the mismatches section contains an entry with column "balance", value_a "3200.50", value_b "3200.99"
+And the report summary shows match_count: 2, mismatch_count: 2
+And the mismatches section contains unmatched hash groups for the differing rows
+```
+
+---
+
+### Feature: Schema Validation
+
+#### Scenario: Matching schemas pass validation [BR-4.9]
+
+```gherkin
+Given a parquet LHS directory with columns: account_id (int64), balance (float64), status (string)
+And a parquet RHS directory with columns: account_id (int64), balance (float64), status (string)
+And a config with reader "parquet"
+When I run the comparison
+Then schema validation passes
+And the comparison proceeds to the hash-sort-diff pipeline
+```
+
+#### Scenario: Column count mismatch fails with exit code 1 [BR-4.9, BR-4.10]
+
+```gherkin
+Given a parquet LHS directory with columns: account_id, balance, status
+And a parquet RHS directory with columns: account_id, balance
+And a config with reader "parquet"
+When I run the comparison
+Then the result is FAIL (exit code 1)
+And the report indicates a schema mismatch: LHS has 3 columns, RHS has 2 columns
+```
+
+#### Scenario: Column name mismatch fails with exit code 1 [BR-4.9, BR-4.11]
+
+```gherkin
+Given a parquet LHS directory with columns: account_id, balance, status
+And a parquet RHS directory with columns: account_id, balance, state
+And a config with reader "parquet"
+When I run the comparison
+Then the result is FAIL (exit code 1)
+And the report indicates a schema mismatch: column name "status" vs "state"
+```
+
+#### Scenario: Column type mismatch fails with exit code 1 (parquet only) [BR-4.12, BR-4.13]
+
+```gherkin
+Given a parquet LHS directory with column balance typed as float64
+And a parquet RHS directory with column balance typed as int32
+And a config with reader "parquet"
+When I run the comparison
+Then the result is FAIL (exit code 1)
+And the report indicates a schema mismatch: column "balance" type float64 vs int32
+Note: CSV schema validation is limited to column count and header names per BR-4.13
 ```
 
 ---
 
 ### Feature: Column Classification
 
-#### Scenario: All columns default to tier 2 when no column config provided [BRD 5]
+#### Scenario: All columns default to STRICT when no column config provided [BR-5.5, BR-5.9]
 
 ```gherkin
-Given a parquet source with columns: account_id, balance, status
+Given a parquet LHS and RHS with matching columns: account_id, balance, status
 And a config with no columns section
 When I run the comparison
-Then all columns are classified as tier 2 in the report's column_classification section
-And the comparison uses exact match for every column
+Then all columns are classified as STRICT in the report's column_classification section
+And the comparison uses byte-level exact match for every column
 ```
 
-#### Scenario: Tier 1 column excluded before hashing [BRD 5, 4]
+#### Scenario: EXCLUDED column dropped before hashing [BR-5.2, BR-5.3, BR-4.14]
 
 ```gherkin
-Given a parquet source_a with rows:
+Given a parquet LHS with rows:
     | run_id                               | account_id | balance |
     | a1b2c3d4-e5f6-7890-abcd-ef1234567890 | 1001       | 5000.00 |
-And a parquet source_b with rows:
+And a parquet RHS with rows:
     | run_id                               | account_id | balance |
     | ffffffff-ffff-ffff-ffff-ffffffffffff | 1001       | 5000.00 |
-And a config with tier_1 columns: [{name: run_id, reason: "Non-deterministic UUID"}]
+And a config with excluded columns: [{name: run_id, reason: "Non-deterministic UUID"}]
 When I run the comparison
 Then the result is PASS
-And the report column_classification shows run_id as tier 1 with reason "Non-deterministic UUID"
+And the report column_classification shows run_id as EXCLUDED with reason "Non-deterministic UUID"
 And the mismatches section is empty
 ```
 
-#### Scenario: Tier 3 absolute tolerance within threshold passes [BRD 7]
+#### Scenario: FUZZY absolute tolerance within threshold passes [BR-7.1, BR-7.2]
 
 ```gherkin
-Given a parquet source_a with rows:
+Given a parquet LHS with rows:
     | account_id | interest_accrued |
     | 1001       | 100.005          |
-And a parquet source_b with rows:
+And a parquet RHS with rows:
     | account_id | interest_accrued |
     | 1001       | 100.004          |
-And a config with tier_3 columns:
+And a config with fuzzy columns:
     [{name: interest_accrued, tolerance: 0.01, tolerance_type: absolute, reason: "Rounding variance"}]
 When I run the comparison
 Then the result is PASS
 And the report summary shows mismatch_count: 0
 ```
 
-#### Scenario: Tier 3 relative tolerance within threshold passes [BRD 7]
+#### Scenario: FUZZY relative tolerance within threshold passes [BR-7.1, BR-7.3]
 
 ```gherkin
-Given a parquet source_a with rows:
+Given a parquet LHS with rows:
     | account_id | market_value |
     | 1001       | 1000000.00   |
-And a parquet source_b with rows:
+And a parquet RHS with rows:
     | account_id | market_value |
     | 1001       | 1000000.50   |
-And a config with tier_3 columns:
+And a config with fuzzy columns:
     [{name: market_value, tolerance: 0.001, tolerance_type: relative, reason: "Scales with magnitude"}]
 When I run the comparison
 Then the result is PASS
 Because |1000000.00 - 1000000.50| / max(|1000000.00|, |1000000.50|) = 0.0000005, which is <= 0.001
 ```
 
-#### Scenario: Tier 3 tolerance exceeded reports mismatch with delta [BRD 7, 11]
+#### Scenario: FUZZY tolerance exceeded reports mismatch with delta [BR-7.1, BR-11.9]
 
 ```gherkin
-Given a parquet source_a with rows:
+Given a parquet LHS with rows:
     | account_id | interest_accrued |
     | 1001       | 100.00           |
-And a parquet source_b with rows:
+And a parquet RHS with rows:
     | account_id | interest_accrued |
     | 1001       | 100.05           |
-And a config with tier_3 columns:
+And a config with fuzzy columns:
     [{name: interest_accrued, tolerance: 0.01, tolerance_type: absolute, reason: "Rounding variance"}]
 When I run the comparison
 Then the result is FAIL
 And the mismatches section contains an entry with:
     column: "interest_accrued"
-    value_a: "100.00"
-    value_b: "100.05"
+    value_lhs: "100.00"
+    value_rhs: "100.05"
     tolerance: 0.01
     tolerance_type: "absolute"
     actual_delta: 0.05
 ```
 
-#### Scenario: Mixed tier classification on same target [BRD 5, 7]
+#### Scenario: Mixed classification on same target [BR-5.1, BR-5.5]
 
 ```gherkin
-Given a parquet source_a with rows:
+Given a parquet LHS with rows:
     | run_id    | account_id | balance | interest_accrued |
     | uuid-aaa  | 1001       | 5000.00 | 100.005          |
-And a parquet source_b with rows:
+And a parquet RHS with rows:
     | run_id    | account_id | balance | interest_accrued |
     | uuid-bbb  | 1001       | 5000.00 | 100.004          |
 And a config with:
-    tier_1: [{name: run_id, reason: "Non-deterministic UUID"}]
-    tier_3: [{name: interest_accrued, tolerance: 0.01, tolerance_type: absolute, reason: "Rounding"}]
+    excluded: [{name: run_id, reason: "Non-deterministic UUID"}]
+    fuzzy: [{name: interest_accrued, tolerance: 0.01, tolerance_type: absolute, reason: "Rounding"}]
 When I run the comparison
 Then the result is PASS
 And the report column_classification shows:
-    run_id as tier 1
-    account_id as tier 2 (default)
-    balance as tier 2 (default)
-    interest_accrued as tier 3
+    run_id as EXCLUDED
+    account_id as STRICT (default)
+    balance as STRICT (default)
+    interest_accrued as FUZZY
 And the mismatches section is empty
 ```
 
@@ -483,35 +601,35 @@ And the mismatches section is empty
 
 ### Feature: Null Handling
 
-#### Scenario: Parquet null vs null matches [BRD 8]
+#### Scenario: Parquet null vs null matches [BR-8.1]
 
 ```gherkin
-Given a parquet source_a with a row where column "notes" is null (native parquet null)
-And a parquet source_b with a row where column "notes" is null (native parquet null)
+Given a parquet LHS with a row where column "notes" is null (native parquet null)
+And a parquet RHS with a row where column "notes" is null (native parquet null)
 And a config with reader "parquet" and no column overrides
 When I run the comparison
 Then the result is PASS
 And the row with the null column is counted as a match
 ```
 
-#### Scenario: Parquet null vs empty string is a mismatch [BRD 8]
+#### Scenario: Parquet null vs empty string is a mismatch [BR-8.1, BR-8.4]
 
 ```gherkin
-Given a parquet source_a with a row where column "notes" is null (native parquet null)
-And a parquet source_b with a row where column "notes" is "" (empty string)
+Given a parquet LHS with a row where column "notes" is null (native parquet null)
+And a parquet RHS with a row where column "notes" is "" (empty string)
 And a config with reader "parquet" and no column overrides
 When I run the comparison
 Then the result is FAIL
-And the mismatches section contains an entry with column "notes", value_a: null, value_b: ""
+And the mismatches section contains an entry with column "notes", value_lhs: null, value_rhs: ""
 ```
 
-#### Scenario: CSV empty field vs literal "NULL" is a mismatch [BRD 8]
+#### Scenario: CSV empty field vs literal "NULL" is a mismatch [BR-8.2, BR-8.3]
 
 ```gherkin
-Given a CSV source_a with content:
+Given a CSV LHS with content:
     id,status
     1,
-And a CSV source_b with content:
+And a CSV RHS with content:
     id,status
     1,NULL
 And a config with reader "csv", header_rows: 1, trailer_rows: 0
@@ -521,13 +639,13 @@ And the mismatches section contains an entry with column "status"
 Because byte-level comparison treats empty field and literal "NULL" as different values
 ```
 
-#### Scenario: CSV different null-like representations are all distinct [BRD 8]
+#### Scenario: CSV different null-like representations are all distinct [BR-8.2]
 
 ```gherkin
-Given a CSV source_a with content:
+Given a CSV LHS with content:
     id,value
     1,NULL
-And a CSV source_b with content:
+And a CSV RHS with content:
     id,value
     1,null
 And a config with reader "csv", header_rows: 1, trailer_rows: 0
@@ -540,15 +658,15 @@ Because "NULL" and "null" are different byte sequences
 
 ### Feature: Hash and Sort Pipeline
 
-#### Scenario: Row order independence --- same data, different order passes [BRD 4]
+#### Scenario: Row order independence --- same data, different order passes [BR-4.17, BR-4.18]
 
 ```gherkin
-Given a parquet source_a with rows:
+Given a parquet LHS with rows:
     | account_id | balance |
     | 1001       | 5000.00 |
     | 1002       | 3200.50 |
     | 1003       | 0.00    |
-And a parquet source_b with the same rows in a different order:
+And a parquet RHS with the same rows in a different order:
     | account_id | balance |
     | 1003       | 0.00    |
     | 1001       | 5000.00 |
@@ -556,38 +674,39 @@ And a parquet source_b with the same rows in a different order:
 And a config with reader "parquet" and no column overrides
 When I run the comparison
 Then the result is PASS
-And the report summary shows match_count: 3, mismatch_count: 0
+And the report summary shows match_count: 6, mismatch_count: 0
 ```
 
-#### Scenario: Duplicate rows --- multiset comparison [BRD 4]
+#### Scenario: Duplicate rows --- multiset comparison [BR-4.22]
 
 ```gherkin
-Given a parquet source_a with rows:
+Given a parquet LHS with rows:
     | account_id | balance |
     | 1001       | 5000.00 |
     | 1001       | 5000.00 |
-And a parquet source_b with rows:
+And a parquet RHS with rows:
     | account_id | balance |
     | 1001       | 5000.00 |
 And a config with reader "parquet" and no column overrides
 When I run the comparison
 Then the result is FAIL
-And the report summary shows row_count_a: 2, row_count_b: 1
+And the report summary shows row_count_lhs: 2, row_count_rhs: 1
 Because multiset comparison requires identical row multiplicity
+Per match formula: matched = min(2,1) × 2 = 2, total = 2 + 1 = 3, match % = 66.7%
 ```
 
-#### Scenario: Tier 1 exclusion does not affect hash-based ordering [BRD 4, 5]
+#### Scenario: EXCLUDED columns do not affect hash-based ordering [BR-4.14, BR-4.16]
 
 ```gherkin
-Given a parquet source_a with rows:
+Given a parquet LHS with rows:
     | uuid       | account_id | balance |
     | aaa-111    | 1001       | 5000.00 |
     | aaa-222    | 1002       | 3200.50 |
-And a parquet source_b with rows (different UUIDs, different order):
+And a parquet RHS with rows (different UUIDs, different order):
     | uuid       | account_id | balance |
     | bbb-999    | 1002       | 3200.50 |
     | bbb-888    | 1001       | 5000.00 |
-And a config with tier_1: [{name: uuid, reason: "Non-deterministic"}]
+And a config with excluded: [{name: uuid, reason: "Non-deterministic"}]
 When I run the comparison
 Then the result is PASS
 Because UUIDs are excluded before hashing, so hash-sort ordering is based on account_id and balance only
@@ -595,84 +714,99 @@ Because UUIDs are excluded before hashing, so hash-sort ordering is based on acc
 
 ---
 
-### Feature: Strictness Settings
+### Feature: Line Break Check
 
-#### Scenario: Line breaks strict mode --- CRLF vs LF is a mismatch [BRD 9]
+#### Scenario: Mismatched line breaks set FAIL flag but comparison continues [BR-4.1, BR-4.2, BR-4.4, BR-4.5]
 
 ```gherkin
-Given a CSV source_a file with CRLF line endings
-And a CSV source_b file with LF line endings
+Given a CSV LHS file with CRLF line endings
+And a CSV RHS file with LF line endings
 And both files have identical field values
-And a config with reader "csv", line_breaks: "strict"
+And a config with reader "csv"
 When I run the comparison
 Then the result is FAIL
-Because CRLF and LF are different byte sequences in strict mode
+And the report summary shows line_break_mismatch: true
+And the report summary still shows the full match percentage from the data comparison
+Because line break mismatch is a file-level FAIL flag; the comparison runs to completion regardless
 ```
 
-#### Scenario: Line breaks normalize mode --- CRLF vs LF matches [BRD 9]
+#### Scenario: Matching line breaks produce no flag [BR-4.1]
 
 ```gherkin
-Given a CSV source_a file with CRLF line endings
-And a CSV source_b file with LF line endings
+Given a CSV LHS file with LF line endings
+And a CSV RHS file with LF line endings
 And both files have identical field values
-And a config with reader "csv", line_breaks: "normalize"
+And a config with reader "csv"
 When I run the comparison
 Then the result is PASS
-Because line break normalization treats CRLF and LF as equivalent
+And the report summary shows line_break_mismatch: false (or field absent)
 ```
 
-#### Scenario: Encoding strict mode --- different encodings mismatch [BRD 9]
+#### Scenario: Line break check does not apply to parquet [BR-4.6]
 
 ```gherkin
-Given a CSV source_a file encoded in UTF-8 containing the character 'e' with acute accent
-And a CSV source_b file encoded in Latin-1 containing the same character
-And a config with reader "csv", encoding: "strict"
-When I run the comparison
-Then the result is FAIL
-Because the byte representations differ between UTF-8 and Latin-1 in strict mode
-```
-
-#### Scenario: Encoding normalize mode --- different encodings match [BRD 9]
-
-```gherkin
-Given a CSV source_a file encoded in UTF-8 containing the character 'e' with acute accent
-And a CSV source_b file encoded in Latin-1 containing the same character
-And a config with reader "csv", encoding: "normalize"
+Given a parquet LHS directory with identical data to the RHS directory
+And a config with reader "parquet"
 When I run the comparison
 Then the result is PASS
-Because both files are decoded to a common encoding and the characters are equivalent
+And the report summary does not contain a line_break_mismatch field
+```
+
+---
+
+### Feature: Encoding
+
+#### Scenario: Configured encoding reads files correctly [BR-9.1, BR-9.4]
+
+```gherkin
+Given a CSV LHS file encoded in UTF-8 containing the character 'e' with acute accent
+And a CSV RHS file encoded in UTF-8 containing the same character
+And a config with reader "csv", encoding: "utf-8"
+When I run the comparison
+Then the result is PASS
+Because both files are read with the same configured encoding
+```
+
+#### Scenario: Invalid encoding produces error [BR-9.2]
+
+```gherkin
+Given a CSV LHS file encoded in UTF-8 containing multi-byte characters
+And a config with reader "csv", encoding: "ascii"
+When I run the comparison
+Then the result is an error (exit code 2)
+And the error message indicates an encoding failure
 ```
 
 ---
 
 ### Feature: Tolerance Edge Cases
 
-#### Scenario: Both values zero with relative tolerance matches [BRD 7]
+#### Scenario: Both values zero with relative tolerance matches [BR-7.4]
 
 ```gherkin
-Given a parquet source_a with rows:
+Given a parquet LHS with rows:
     | account_id | delta |
     | 1001       | 0.0   |
-And a parquet source_b with rows:
+And a parquet RHS with rows:
     | account_id | delta |
     | 1001       | 0.0   |
-And a config with tier_3 columns:
+And a config with fuzzy columns:
     [{name: delta, tolerance: 0.01, tolerance_type: relative, reason: "Zero edge case"}]
 When I run the comparison
 Then the result is PASS
 Because both values are zero, delta is zero
 ```
 
-#### Scenario: One value zero, other non-zero with relative tolerance [BRD 7]
+#### Scenario: One value zero, other non-zero with relative tolerance [BR-7.5]
 
 ```gherkin
-Given a parquet source_a with rows:
+Given a parquet LHS with rows:
     | account_id | delta  |
     | 1001       | 0.0    |
-And a parquet source_b with rows:
+And a parquet RHS with rows:
     | account_id | delta  |
     | 1001       | 0.0001 |
-And a config with tier_3 columns:
+And a config with fuzzy columns:
     [{name: delta, tolerance: 0.01, tolerance_type: relative, reason: "Zero edge case"}]
 When I run the comparison
 Then the result is FAIL
@@ -680,139 +814,211 @@ Because |0.0 - 0.0001| / max(|0.0|, |0.0001|) = 1.0, which exceeds tolerance 0.0
 And the mismatches section contains an entry with actual_delta showing the relative difference
 ```
 
-#### Scenario: Tolerance type missing on tier 3 column errors [BRD 7, 6]
+#### Scenario: Tolerance type missing on FUZZY column errors [BR-7.6, BR-6.5]
 
 ```gherkin
-Given a config YAML with a tier_3 column entry:
+Given a config YAML with a fuzzy column entry:
     - name: interest_accrued
       tolerance: 0.01
       reason: "Rounding variance"
 And tolerance_type is NOT specified
 When I attempt to parse the config
 Then the result is an error (exit code 2)
-And the error message indicates tolerance_type is required for tier 3 column "interest_accrued"
+And the error message indicates tolerance_type is required for FUZZY column "interest_accrued"
 ```
 
-#### Scenario: Tolerance value missing on tier 3 column errors [BRD 7, 6]
+#### Scenario: Tolerance value missing on FUZZY column errors [BR-7.7, BR-6.5]
 
 ```gherkin
-Given a config YAML with a tier_3 column entry:
+Given a config YAML with a fuzzy column entry:
     - name: interest_accrued
       tolerance_type: absolute
       reason: "Rounding variance"
 And tolerance (the numeric value) is NOT specified
 When I attempt to parse the config
 Then the result is an error (exit code 2)
-And the error message indicates tolerance value is required for tier 3 column "interest_accrued"
+And the error message indicates tolerance value is required for FUZZY column "interest_accrued"
 ```
 
 ---
 
 ### Feature: Report Output
 
-#### Scenario: Report contains required metadata and structure [BRD 11]
+#### Scenario: Report contains required metadata and structure [BR-11.1 through BR-11.5]
 
 ```gherkin
 Given any valid comparison that runs to completion
 When I examine the JSON report
 Then the report contains a "metadata" section with: timestamp, proofmark_version, comparison_target, config_path
 And the report contains a "config_echo" section with the full configuration used
-And the report contains a "column_classification" section listing tier 1, tier 2, and tier 3 columns
-And the report contains a "summary" section with: row_count_a, row_count_b, match_count, mismatch_count, match_percentage, result, threshold
+And the report contains a "column_classification" section listing EXCLUDED, STRICT, and FUZZY columns
+And the report contains a "summary" section with: row_count_lhs, row_count_rhs, match_count, mismatch_count, match_percentage, result, threshold
 And the report contains a "mismatches" section (empty list if no mismatches)
 ```
 
-#### Scenario: All mismatches shown regardless of pass/fail stamp [BRD 11]
+#### Scenario: All mismatches shown regardless of pass/fail stamp [BR-11.24]
 
 ```gherkin
-Given a parquet comparison target with 100 rows where 1 row has a data mismatch
-And a config with threshold: 99.0
-When I run the comparison
-Then the result is PASS (99% match >= 99% threshold)
-And the report summary shows match_percentage: 99.0
-And the mismatches section contains exactly 1 entry with the specific mismatch detail
-And the mismatches section is NOT suppressed by the PASS result
-```
-
-#### Scenario: Threshold 100% with any mismatch fails [BRD 11]
-
-```gherkin
-Given a parquet comparison target with 1000 rows where 1 row has a data mismatch
-And a config with threshold: 100.0 (or threshold omitted, since 100.0 is the default)
-When I run the comparison
-Then the result is FAIL
-And the report summary shows match_percentage: 99.9
-And the mismatches section contains the 1 mismatch entry
-```
-
-#### Scenario: Threshold below 100% with mismatches within threshold passes [BRD 11]
-
-```gherkin
-Given a parquet comparison target with 200 rows where 2 rows have data mismatches
+Given a parquet comparison target where LHS and RHS each have 100 rows and 1 row differs
 And a config with threshold: 99.0
 When I run the comparison
 Then the result is PASS
-And the report summary shows match_percentage: 99.0, match_count: 198, mismatch_count: 2
-And the mismatches section contains exactly 2 entries
+Per formula: matched = 99 × 2 = 198, total = 200, match % = 99.0% >= 99.0% threshold
+And the mismatches section contains the unmatched hash groups
+And the mismatches section is NOT suppressed by the PASS result
 ```
 
-#### Scenario: Column classification with justifications echoed in report [BRD 11, 5]
+#### Scenario: Threshold 100% with any mismatch fails [BR-11.23, BR-11.25]
+
+```gherkin
+Given a parquet comparison target where LHS and RHS each have 1000 rows and 1 row differs
+And a config with threshold: 100.0 (or threshold omitted, since 100.0 is the default)
+When I run the comparison
+Then the result is FAIL
+Per formula: matched = 999 × 2 = 1998, total = 2000, match % = 99.9% < 100.0%
+And the mismatches section contains the unmatched hash groups
+```
+
+#### Scenario: Threshold below 100% with mismatches within threshold passes [BR-11.22, BR-11.25]
+
+```gherkin
+Given a parquet comparison target where LHS and RHS each have 200 rows and 2 rows differ
+And a config with threshold: 99.0
+When I run the comparison
+Then the result is PASS
+Per formula: matched = 198 × 2 = 396, total = 400, match % = 99.0% >= 99.0%
+And the mismatches section contains exactly the unmatched hash groups
+```
+
+#### Scenario: Column classification with justifications echoed in report [BR-11.4, BR-5.3, BR-5.8]
 
 ```gherkin
 Given a config with:
-    tier_1: [{name: run_id, reason: "Non-deterministic UUID assigned at runtime"}]
-    tier_3: [{name: interest_accrued, tolerance: 0.01, tolerance_type: absolute, reason: "Spark vs ADF rounding"}]
-And columns account_id and balance exist but are not in the config (tier 2 by default)
+    excluded: [{name: run_id, reason: "Non-deterministic UUID assigned at runtime"}]
+    fuzzy: [{name: interest_accrued, tolerance: 0.01, tolerance_type: absolute, reason: "Spark vs ADF rounding"}]
+And columns account_id and balance exist but are not in the config (STRICT by default)
 When I run a comparison and examine the report
 Then the column_classification section shows:
-    tier_1: run_id with reason "Non-deterministic UUID assigned at runtime"
-    tier_2: account_id, balance
-    tier_3: interest_accrued with reason "Spark vs ADF rounding", tolerance 0.01, tolerance_type "absolute"
+    EXCLUDED: run_id with reason "Non-deterministic UUID assigned at runtime"
+    STRICT: account_id, balance
+    FUZZY: interest_accrued with reason "Spark vs ADF rounding", tolerance 0.01, tolerance_type "absolute"
+```
+
+#### Scenario: Line break mismatch causes FAIL even with 100% data match [BR-11.25, BR-4.2]
+
+```gherkin
+Given a CSV LHS file with CRLF line endings
+And a CSV RHS file with LF line endings
+And both files have identical field values (all data matches perfectly)
+And a config with reader "csv"
+When I run the comparison
+Then the result is FAIL
+And the report summary shows match_percentage: 100.0
+And the report summary shows line_break_mismatch: true
+Because PASS requires no line break mismatch, even when all data matches
+```
+
+#### Scenario: FUZZY tolerance failure causes FAIL despite 100% hash match rate [BR-11.25, BR-4.21]
+
+```gherkin
+Given a parquet LHS with rows:
+    | account_id | balance |
+    | 1001       | 100.00  |
+And a parquet RHS with rows:
+    | account_id | balance |
+    | 1001       | 100.50  |
+And a config with fuzzy columns:
+    [{name: balance, tolerance: 0.01, tolerance_type: absolute, reason: "Rounding"}]
+And account_id is STRICT (default)
+When I run the comparison
+Then the hash is computed on account_id only (balance is FUZZY, excluded from hash)
+And the hash groups match (same account_id on both sides)
+And match_percentage based on hash groups is 100.0
+But the result is FAIL
+Because |100.00 - 100.50| = 0.50, which exceeds the absolute tolerance of 0.01
+And the mismatches section shows the FUZZY column failure with actual_delta: 0.50
+```
+
+#### Scenario: Mismatch correlation pairs rows differing in few columns [BR-11.10]
+
+```gherkin
+Given a parquet LHS with rows:
+    | account_id | balance | status |
+    | 1001       | 5000.00 | active |
+    | 1002       | 3200.50 | active |
+And a parquet RHS with rows:
+    | account_id | balance | status |
+    | 1001       | 5000.00 | active |
+    | 1002       | 3200.99 | active |
+And a config with reader "parquet" and no column overrides (all STRICT)
+When I run the comparison
+Then the result is FAIL
+And the mismatches section correlates the unmatched LHS row (1002, 3200.50) with the unmatched RHS row (1002, 3200.99)
+Because the rows share 2 of 3 column values, providing high correlation confidence
+```
+
+#### Scenario: Low correlation confidence falls back to separate lists [BR-11.11]
+
+```gherkin
+Given a parquet LHS with rows:
+    | account_id | balance | status |
+    | 1001       | 5000.00 | active |
+    | 9999       | 0.01    | closed |
+And a parquet RHS with rows:
+    | account_id | balance | status |
+    | 1001       | 5000.00 | active |
+    | 8888       | 99999.00| pending|
+And a config with reader "parquet" and no column overrides (all STRICT)
+When I run the comparison
+Then the result is FAIL
+And the mismatches section presents unmatched LHS rows and unmatched RHS rows as separate lists
+Because the unmatched rows share no column values, so correlation confidence is low
 ```
 
 ---
 
 ### Feature: CLI Interface
 
-#### Scenario: Exit code 0 on PASS [BRD 12]
+#### Scenario: Exit code 0 on PASS [BR-12.6]
 
 ```gherkin
-Given a valid config pointing to identical parquet sources
-When I run `proofmark compare --config path/to/config.yaml`
+Given a valid config and identical parquet LHS/RHS directories
+When I run `proofmark compare --config path/to/config.yaml --left path/to/lhs --right path/to/rhs`
 Then the process exit code is 0
 And stdout contains a valid JSON report with result: "PASS"
 ```
 
-#### Scenario: Exit code 1 on FAIL [BRD 12]
+#### Scenario: Exit code 1 on FAIL [BR-12.7]
 
 ```gherkin
-Given a valid config pointing to parquet sources with data mismatches
-When I run `proofmark compare --config path/to/config.yaml`
+Given a valid config and parquet LHS/RHS directories with data mismatches
+When I run `proofmark compare --config path/to/config.yaml --left path/to/lhs --right path/to/rhs`
 Then the process exit code is 1
 And stdout contains a valid JSON report with result: "FAIL"
 ```
 
-#### Scenario: Exit code 2 on error [BRD 12]
+#### Scenario: Exit code 2 on error [BR-12.8]
 
 ```gherkin
-Given a config file that references a source_a path that does not exist
-When I run `proofmark compare --config path/to/config.yaml`
+Given a config file that references reader "parquet"
+And the --left path does not exist
+When I run `proofmark compare --config path/to/config.yaml --left /nonexistent --right path/to/rhs`
 Then the process exit code is 2
-And stderr contains an error message indicating the missing file
+And stderr contains an error message indicating the missing path
 And stdout does not contain a JSON report
 ```
 
-#### Scenario: Output to file with --output flag [BRD 12]
+#### Scenario: Output to file with --output flag [BR-12.4]
 
 ```gherkin
-Given a valid config pointing to identical parquet sources
-When I run `proofmark compare --config path/to/config.yaml --output /tmp/report.json`
+Given a valid config and identical parquet LHS/RHS directories
+When I run `proofmark compare --config path/to/config.yaml --left path/to/lhs --right path/to/rhs --output /tmp/report.json`
 Then the process exit code is 0
 And /tmp/report.json contains a valid JSON report with result: "PASS"
 And stdout is empty (report goes to file, not stdout)
 ```
 
-#### Scenario: Config flag is required [BRD 12]
+#### Scenario: Config flag is required [BR-12.1]
 
 ```gherkin
 When I run `proofmark compare` without a --config flag
@@ -824,20 +1030,18 @@ And stderr contains a usage error indicating --config is required
 
 ### Feature: Configuration Validation
 
-#### Scenario: Valid YAML config parses without error [BRD 6]
+#### Scenario: Valid YAML config parses without error [BR-6.1 through BR-6.5]
 
 ```gherkin
 Given a YAML config file with all required fields:
     comparison_target: "test_target"
     reader: "parquet"
-    source_a: "/path/to/source_a"
-    source_b: "/path/to/source_b"
 When I parse the config
 Then no validation error is raised
 And the config object has comparison_target "test_target", reader "parquet"
 ```
 
-#### Scenario: Missing required field produces error [BRD 6]
+#### Scenario: Missing required field produces error [BR-6.6]
 
 ```gherkin
 Given a YAML config file missing the "reader" field
@@ -845,7 +1049,7 @@ When I attempt to parse the config
 Then a validation error is raised indicating "reader" is a required field
 ```
 
-#### Scenario: Unknown reader type produces error [BRD 6]
+#### Scenario: Unknown reader type produces error [BR-3.6]
 
 ```gherkin
 Given a YAML config file with reader: "excel"
@@ -854,55 +1058,110 @@ Then a validation error is raised indicating "excel" is not a valid reader type
 And the error message lists valid reader types: "csv", "parquet"
 ```
 
-#### Scenario: Tier 3 column without tolerance_type produces error [BRD 6, 7]
+#### Scenario: FUZZY column without tolerance_type produces error [BR-7.6]
 
 ```gherkin
-Given a YAML config file with a tier_3 column:
+Given a YAML config file with a fuzzy column:
     - name: balance
       tolerance: 0.01
       reason: "Rounding"
 And tolerance_type is not present
 When I attempt to parse the config
-Then a validation error is raised indicating tolerance_type is required for tier 3 column "balance"
+Then a validation error is raised indicating tolerance_type is required for FUZZY column "balance"
 ```
 
-#### Scenario: Tier 3 column without tolerance value produces error [BRD 6, 7]
+#### Scenario: FUZZY column without tolerance value produces error [BR-7.7]
 
 ```gherkin
-Given a YAML config file with a tier_3 column:
+Given a YAML config file with a fuzzy column:
     - name: balance
       tolerance_type: absolute
       reason: "Rounding"
 And tolerance (numeric value) is not present
 When I attempt to parse the config
-Then a validation error is raised indicating tolerance is required for tier 3 column "balance"
+Then a validation error is raised indicating tolerance is required for FUZZY column "balance"
+```
+
+#### Scenario: EXCLUDED column without reason produces error [BR-5.3, BR-6.6]
+
+```gherkin
+Given a YAML config file with an excluded column:
+    - name: run_id
+And reason is not present
+When I attempt to parse the config
+Then a validation error is raised indicating reason is required for EXCLUDED column "run_id"
+```
+
+#### Scenario: FUZZY column without reason produces error [BR-5.8, BR-6.6]
+
+```gherkin
+Given a YAML config file with a fuzzy column:
+    - name: balance
+      tolerance: 0.01
+      tolerance_type: absolute
+And reason is not present
+When I attempt to parse the config
+Then a validation error is raised indicating reason is required for FUZZY column "balance"
+```
+
+#### Scenario: Column appearing in both EXCLUDED and FUZZY lists produces error [BR-5.1]
+
+```gherkin
+Given a YAML config file with:
+    excluded:
+        - name: balance
+          reason: "Non-deterministic"
+    fuzzy:
+        - name: balance
+          tolerance: 0.01
+          tolerance_type: absolute
+          reason: "Rounding"
+When I attempt to parse the config
+Then a validation error is raised indicating column "balance" appears in multiple classification lists
+Because BR-5.1 requires every column to belong to exactly one tier
 ```
 
 ---
 
 ### Feature: Row Count
 
-#### Scenario: Different row counts between sources fails [BRD 4, 11]
+#### Scenario: Different row counts between LHS and RHS [BR-4.18, BR-4.20, BR-11.17]
 
 ```gherkin
-Given a parquet source_a with 100 rows
-And a parquet source_b with 99 rows (first 99 rows match source_a)
+Given a parquet LHS with 100 rows
+And a parquet RHS with 99 rows (first 99 rows match LHS)
 And a config with reader "parquet" and no column overrides
 When I run the comparison
 Then the result is FAIL
-And the report summary shows row_count_a: 100, row_count_b: 99
-And the mismatch count reflects the unmatched row
+And the report summary shows row_count_lhs: 100, row_count_rhs: 99
+Per formula: matched = 99 × 2 = 198, total = 100 + 99 = 199, match % = 99.5%
+And the mismatches section contains 1 unmatched hash group (LHS only)
 ```
 
-#### Scenario: Same row count, all rows match [BRD 4]
+#### Scenario: Both sides have zero data rows — PASS [BR-4.18, BR-11.13, BR-11.18]
 
 ```gherkin
-Given a parquet source_a with 50 rows
-And a parquet source_b with the same 50 rows
+Given a parquet LHS directory with 1 part file containing 0 data rows (schema only)
+And a parquet RHS directory with 1 part file containing 0 data rows (schema only)
+And matching schemas on both sides
 And a config with reader "parquet" and no column overrides
 When I run the comparison
 Then the result is PASS
-And the report summary shows row_count_a: 50, row_count_b: 50, match_count: 50, mismatch_count: 0
+And the report summary shows row_count_lhs: 0, row_count_rhs: 0, match_count: 0, mismatch_count: 0
+And match_percentage is 100.0
+Because 0 rows on both sides is equivalence (both produced nothing); match % = 100.0 by definition when total_rows = 0
+Note: This is a real scenario — ETL jobs that intentionally produce zero data rows with a trailer or manifest
+```
+
+#### Scenario: Same row count, all rows match [BR-4.18]
+
+```gherkin
+Given a parquet LHS with 50 rows
+And a parquet RHS with the same 50 rows
+And a config with reader "parquet" and no column overrides
+When I run the comparison
+Then the result is PASS
+And the report summary shows row_count_lhs: 50, row_count_rhs: 50, match_count: 100, mismatch_count: 0
 ```
 
 ---
@@ -911,7 +1170,7 @@ And the report summary shows row_count_a: 50, row_count_b: 50, match_count: 50, 
 
 ### Why tests are feature-based, not pipeline-stage-based
 
-The pipeline (load, exclude, hash, sort, diff, report) is an implementation detail. If we restructure the pipeline internals, we don't want every test file to move. Feature-based organization means tests survive refactors. A test about tier 3 tolerance doesn't care whether the tolerance check happens in a "diff" module or a "compare" module --- it cares about the observable output.
+The pipeline (load, validate schema, exclude, hash, sort, diff, report) is an implementation detail. If we restructure the pipeline internals, we don't want every test file to move. Feature-based organization means tests survive refactors. A test about FUZZY tolerance doesn't care whether the tolerance check happens in a "diff" module or a "compare" module --- it cares about the observable output.
 
 ### Why fixtures are checked in, not generated at test time
 
@@ -926,9 +1185,21 @@ The generation script exists for reproducibility --- if fixtures need to be rege
 
 CLI scenarios test the external interface --- exit codes, stdout/stderr, file creation. These must exercise the actual CLI entry point as a user would invoke it. Internal API tests (`run_comparison` fixture) test the comparison pipeline without process overhead. Both are needed; they test different contracts.
 
+### Why schema validation is a separate feature area
+
+BRD v3 made schema validation an explicit pipeline step (Step 2, BR-4.9 through BR-4.13) with its own exit code behavior (exit code 1, same as data FAIL). In v1 this was implicit. The test architecture reflects this by giving schema validation its own feature area and test file, ensuring column count, name, and type mismatches are each tested independently.
+
+### Why strictness is replaced by line_break_check and encoding
+
+BRD v3 eliminated the configurable strict/normalize toggle for both line breaks and encoding:
+- **Line breaks** are now an automatic pre-comparison check (BR-4.1 through BR-4.6). Mismatch sets a FAIL flag but the comparison runs to completion. No configuration needed or allowed.
+- **Encoding** is now a single configured value applied to both sides (BR-9.1 through BR-9.5). No normalization across different encodings. The rewrite is responsible for matching the expected encoding.
+
+This simplification removed 2 scenarios (normalize modes) and added 3 (line break pre-check) and 2 (encoding config/error), for a net gain of 3 scenarios but with clearer, more testable behavior.
+
 ### Scenarios intentionally NOT included
 
-The following are out of scope per `Documentation/out-of-scope.md` and BRD Section 17:
+The following are out of scope per `Documentation/out-of-scope.md` and BRD v3 Section 16:
 
 - Database source comparison (PostgreSQL, Oracle, SQL Server, Synapse)
 - Salesforce-specific comparison
@@ -936,6 +1207,8 @@ The following are out of scope per `Documentation/out-of-scope.md` and BRD Secti
 - Evidence package assembly
 - Batch/orchestration mode
 - PII/PCI stripping from reports
-- Verbosity flags
-- Hash algorithm configurability
-- CSV dialect configuration (delimiter, quote char, escape char)
+- Verbosity flags (BR-12.10)
+- Hash algorithm configurability (MVP uses MD5 per BR-10.1)
+- CSV dialect configuration (delimiter, quote char, escape char) (BR-14.1)
+- Dry-run mode (BR-12.12)
+- CLI flags that override config values (BR-12.13)
