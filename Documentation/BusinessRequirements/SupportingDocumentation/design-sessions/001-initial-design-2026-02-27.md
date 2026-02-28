@@ -68,7 +68,7 @@ Dan's boss challenged him to an LLM-off (compare progress by Monday). Dan's boss
 - Simple CSV (DataFrame → CSV, the 76% case)
 - CSV with trailing control record
 
-**Out of scope:** See `/Documentation/out-of-scope.md`
+**Out of scope:** See `/Documentation/BusinessRequirements/out-of-scope.md`
 
 **Basic flow:**
 - Configure a job with a specific output type pattern

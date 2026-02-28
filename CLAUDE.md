@@ -32,7 +32,7 @@ This is the governing document for the POC. It contains:
 2. Read `Documentation/scope-and-intent.md` — Proofmark's actual scope and the vendor build strategy.
 3. Read `Documentation/design-sessions/001-initial-design-2026-02-27.md` — foundational design conversation.
 4. Check for newer design session files in `Documentation/design-sessions/` — they're numbered sequentially.
-5. Check `Documentation/out-of-scope.md` so you don't waste time on punted items.
+5. Check `Documentation/BusinessRequirements/out-of-scope.md` so you don't waste time on punted items.
 6. Ask Dan what we're working on today.
 
 ## Rules

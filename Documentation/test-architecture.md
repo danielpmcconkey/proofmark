@@ -1199,7 +1199,7 @@ This simplification removed 2 scenarios (normalize modes) and added 3 (line brea
 
 ### Scenarios intentionally NOT included
 
-The following are out of scope per `Documentation/out-of-scope.md` and BRD v3 Section 16:
+The following are out of scope per `Documentation/BusinessRequirements/out-of-scope.md` and BRD v3 Section 16:
 
 - Database source comparison (PostgreSQL, Oracle, SQL Server, Synapse)
 - Salesforce-specific comparison
