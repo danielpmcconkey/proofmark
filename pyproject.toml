@@ -1,0 +1,32 @@
+[project]
+name = "proofmark"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = [
+    "pyarrow>=14.0",
+    "pyyaml>=6.0",
+]
+
+[project.scripts]
+proofmark = "proofmark.cli:main"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+]
+
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+markers = [
+    "parquet: requires parquet fixtures",
+    "csv: requires CSV fixtures",
+    "slow: tests with large fixture files",
+    "cli: end-to-end CLI invocation tests",
+]
