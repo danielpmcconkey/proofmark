@@ -252,8 +252,8 @@ class DiffResult:
 # correlator.py
 @dataclass(frozen=True)
 class CorrelatedPair:
-    lhs_content: str
-    rhs_content: str
+    lhs_row: str
+    rhs_row: str
     confidence: str                      # "high" [BR-11.10]
     differing_columns: list[str]
 
@@ -266,7 +266,7 @@ class CorrelationResult:
 ```
 
 - **FSD-4.7:** `HashedRow.hash_key` is MD5 of STRICT columns only [BR-4.16]. `unhashed_content` is all non-excluded columns, pipe-delimited [BR-4.15].
-- **FSD-4.8:** `HashGroupResult.status` is `"MATCH"` or `"COUNT_MISMATCH"` [BR-4.19]. `matched_count = min(lhs_count, rhs_count)` [BR-11.14].
+- **FSD-4.8:** `HashGroupResult.status` is `"MATCH"` or `"COUNT_MISMATCH"` [BR-4.19]. `status` reflects hash-level count comparison only; `matched_count` is the authoritative field after FUZZY reclassification. `matched_count = min(lhs_count, rhs_count)` initially [BR-11.14], then reduced by FUZZY failures per FSD-5.6.6a.
 - **FSD-4.9:** `DiffResult.total_matched` uses double-counting: `sum(matched_count × 2)` across all hash groups [BR-11.14]. `matched_count` per group accounts for FUZZY failures: hash-matched pairs minus FUZZY-failed pairs.
 - **FSD-4.10:** `CorrelatedPair.confidence` is `"high"` for pairs exceeding the similarity threshold [BR-11.10].
 
@@ -1344,7 +1344,7 @@ This FSD advances the following TAR register items:
 | T-04: CSV Trailing Control Record | FSD-5.3.15 (trailer_rows), FSD-6.5–6.6 |
 | T-05: Per-Job Config Schema | FSD-5.2.* |
 | T-06: Report Generator | FSD-5.9.*, FSD-7.* |
-| T-12: TDD/BDD Test Suite | Appendix A (test file mapping to 60 BDD scenarios) |
+| T-12: TDD/BDD Test Suite | Appendix A (test file mapping to 66 BDD scenarios) |
 | AC-01: Proofmark Maturity | This document IS the functional specification |
 | AC-24: Attestation Problem | FSD-6.8 (fixed attestation text in every report) |
 | AC-25: Information Isolation | FSD-1.2 (portability test — zero platform knowledge) |
@@ -1364,10 +1364,10 @@ Each test file maps to one or more feature areas from the Test Architecture v2. 
 | `test_schema.py` | schema_validation | 10–13 | `parquet/schema_mismatch_*` |
 | `test_hasher.py` | column_classification, hash_sort_diff, null_handling | 14–16, 19–21, 24–26 | `parquet/excluded_*`, `parquet/fuzzy_*`, `parquet/different_row_order`, `parquet/mixed_classification`, `parquet/with_nulls`, `parquet/null_vs_empty_string` |
 | `test_diff.py` | hash_sort_diff, row_count | 24–25, 58–60 | `parquet/different_row_order`, `parquet/duplicate_rows`, `parquet/row_count_mismatch`, `parquet/zero_rows` |
-| `test_tolerance.py` | column_classification (FUZZY) | 16–18, 32–35 | `parquet/fuzzy_*` |
+| `test_tolerance.py` | column_classification (FUZZY), null_handling (FUZZY) | 16–18, 32–35, 61–63 | `parquet/fuzzy_*`, `parquet/fuzzy_null_*` |
 | `test_correlator.py` | report_output (correlation) | 43–44 | `parquet/correlation_*` |
 | `test_report.py` | report_output | 36–42 | Various |
-| `test_config.py` | config_validation | 50–57 | `configs/*` |
+| `test_config.py` | config_validation | 50–57, 64–66 | `configs/*` |
 | `test_cli.py` | cli | 45–49 | Various |
 | `test_pipeline.py` | (end-to-end) | 22–23, 27–31, 38–39, 41, 42 | `csv/crlf_vs_lf`, `csv/encoding_*`, `csv/null_*`, `parquet/threshold_*` |
 

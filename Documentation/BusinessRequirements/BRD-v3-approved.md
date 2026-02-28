@@ -440,7 +440,7 @@ Encoding detection and normalization for CSV files (which have no embedded encod
 **[BR-11.5]** **Summary:**
 - Row counts (LHS, RHS)
 - Match count (single-counted: the number of row pairs that matched. Not the double-counted internal value used for percentage calculation.)
-- Mismatch count
+- Mismatch count: `max(row_count_lhs, row_count_rhs) - match_count`. Single-counted, paralleling match_count.
 - Match percentage (see formula below)
 - Pass/fail stamp
 - Threshold used

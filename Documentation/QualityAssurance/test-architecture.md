@@ -1,11 +1,11 @@
 # Proofmark --- Test Architecture and BDD Scenarios
 
-**Version:** 2.1
+**Version:** 2.2
 **Date:** 2026-02-28
 **Status:** Draft --- Pending Dan's Review + Adversarial Review
 **Preceding Artifact:** BRD v3.1 (FSD audit revision, 2026-02-28)
 **Next Artifact:** Adversarial review of this document, then test data management
-**Revision:** v2.1 — Aligned with BRD v3.1 (FUZZY-as-mismatch, single-counted match_count, updated PASS/FAIL conditions)
+**Revision:** v2.2 — Added 6 scenarios from Round 2 cross-document audit: null+FUZZY handling (2), non-numeric FUZZY data (1), threshold range validation (2), negative tolerance validation (1). Now 66 scenarios.
 
 ---
 
@@ -202,14 +202,14 @@ Every BDD scenario below includes `[BR-x.x]` references to specific BRD v3 requi
 | 4 Comparison Pipeline (Steps 3-6) | hash_sort_diff, row_count | 6 |
 | 5 Column Classification | column_classification | 6 |
 | 5 Column Classification (validation) | config_validation | 3 |
-| 6 Configuration | config_validation | 5 |
-| 7 Tolerance Specification | column_classification | 4 |
-| 8 Null Handling | null_handling | 4 |
+| 6 Configuration | config_validation | 8 |
+| 7 Tolerance Specification | column_classification, tolerance_edge_cases | 5 |
+| 8 Null Handling | null_handling | 6 |
 | 9 Encoding | encoding | 2 |
 | 11 Report Output | report_output | 9 |
 | 12 CLI Interface | cli | 5 |
 
-Total: 60 BDD scenarios across 12 feature areas.
+Total: 66 BDD scenarios across 12 feature areas.
 
 ### 1.5 Match Percentage Formula
 
@@ -665,6 +665,42 @@ Then the result is FAIL
 Because "NULL" and "null" are different byte sequences
 ```
 
+#### Scenario: Parquet null vs null in FUZZY column matches [BR-8.1, BR-4.21]
+
+```gherkin
+Given a parquet LHS with rows:
+    | account_id | balance |
+    | 1001       | None    |
+And a parquet RHS with rows:
+    | account_id | balance |
+    | 1001       | None    |
+And a config with fuzzy columns:
+    [{name: balance, tolerance: 0.01, tolerance_type: absolute, reason: "Rounding"}]
+When I run the comparison
+Then the result is PASS
+And the FUZZY tolerance check is skipped for the null-vs-null pair
+Because both values are null — no numeric comparison is needed [FSD-5.7.8]
+```
+
+#### Scenario: Parquet null vs non-null in FUZZY column is a mismatch [BR-8.1, BR-4.21]
+
+```gherkin
+Given a parquet LHS with rows:
+    | account_id | balance |
+    | 1001       | None    |
+And a parquet RHS with rows:
+    | account_id | balance |
+    | 1001       | 100.00  |
+And a config with fuzzy columns:
+    [{name: balance, tolerance: 0.01, tolerance_type: absolute, reason: "Rounding"}]
+When I run the comparison
+Then the result is FAIL
+And the mismatches section contains a FUZZY failure for column "balance"
+And actual_delta equals abs(100.00) = 100.0
+And match_count: 0, mismatch_count: 1, match_percentage: 0.0
+Because null vs non-null is a FUZZY failure regardless of tolerance [FSD-5.7.8]
+```
+
 ---
 
 ### Feature: Hash and Sort Pipeline
@@ -849,6 +885,24 @@ And tolerance (the numeric value) is NOT specified
 When I attempt to parse the config
 Then the result is an error (exit code 2)
 And the error message indicates tolerance value is required for FUZZY column "interest_accrued"
+```
+
+#### Scenario: Non-numeric FUZZY column data produces ConfigError at runtime [BR-4.21, FSD-5.7.5]
+
+```gherkin
+Given a parquet LHS with rows:
+    | account_id | status |
+    | 1001       | active |
+And a parquet RHS with rows:
+    | account_id | status |
+    | 1001       | active |
+And a config with fuzzy columns:
+    [{name: status, tolerance: 0.01, tolerance_type: absolute, reason: "Rounding"}]
+When I run the comparison
+Then the process exit code is 2
+And stderr contains a ConfigError indicating FUZZY column "status" contains non-numeric value "active"
+Because FUZZY columns must contain numeric data for tolerance comparison [FSD-5.7.5]
+Note: The float() conversion raises ValueError internally; the tolerance module catches and wraps it as ConfigError
 ```
 
 ---
@@ -1132,6 +1186,36 @@ Given a YAML config file with:
 When I attempt to parse the config
 Then a validation error is raised indicating column "balance" appears in multiple classification lists
 Because BR-5.1 requires every column to belong to exactly one tier
+```
+
+#### Scenario: Threshold out of range produces error [BR-11.22, FSD-5.2.11]
+
+```gherkin
+Given a YAML config file with threshold: 101.0
+When I attempt to parse the config
+Then a validation error is raised indicating threshold must be between 0.0 and 100.0
+Because BR-11.22 requires deterministic threshold comparison within a valid range
+```
+
+#### Scenario: Negative threshold produces error [BR-11.22, FSD-5.2.11]
+
+```gherkin
+Given a YAML config file with threshold: -5.0
+When I attempt to parse the config
+Then a validation error is raised indicating threshold must be between 0.0 and 100.0
+```
+
+#### Scenario: Negative FUZZY tolerance produces error [FSD-5.2.11a]
+
+```gherkin
+Given a YAML config file with a fuzzy column:
+    - name: balance
+      tolerance: -0.01
+      tolerance_type: absolute
+      reason: "Rounding"
+When I attempt to parse the config
+Then a validation error is raised indicating tolerance must be >= 0.0 for FUZZY column "balance"
+Because a negative tolerance is nonsensical — it would reject all matches
 ```
 
 ---
