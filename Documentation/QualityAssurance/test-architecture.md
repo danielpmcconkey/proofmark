@@ -1,10 +1,11 @@
 # Proofmark --- Test Architecture and BDD Scenarios
 
-**Version:** 2.0
+**Version:** 2.1
 **Date:** 2026-02-28
 **Status:** Draft --- Pending Dan's Review + Adversarial Review
-**Preceding Artifact:** BRD v3.0 (approved 2026-02-28)
+**Preceding Artifact:** BRD v3.1 (FSD audit revision, 2026-02-28)
 **Next Artifact:** Adversarial review of this document, then test data management
+**Revision:** v2.1 — Aligned with BRD v3.1 (FUZZY-as-mismatch, single-counted match_count, updated PASS/FAIL conditions)
 
 ---
 
@@ -212,32 +213,42 @@ Total: 60 BDD scenarios across 12 feature areas.
 
 ### 1.5 Match Percentage Formula
 
-BRD v3 defines the match percentage explicitly (BR-11.13 through BR-11.18). This formula governs all report scenarios:
+BRD v3.1 defines the match percentage explicitly (BR-11.13 through BR-11.18). This formula governs all report scenarios:
 
-- **Per hash group**: matched rows = `min(lhs_count, rhs_count) × 2`
-- **Surplus per group**: `|lhs_count - rhs_count|`
+- **Per hash group**: hash-matched pairs = `min(lhs_count, rhs_count)`. If FUZZY columns exist, pairs failing FUZZY validation are reclassified as unmatched. Final matched for group = `(hash-matched pairs - fuzzy-failed pairs) × 2`
+- **Surplus per group**: `|lhs_count - rhs_count|` from count mismatch, PLUS `fuzzy-failed pairs × 2`
 - **Rows unique to one side**: 0 matched, all surplus
 - **Total rows**: `lhs_row_count + rhs_row_count`
 - **Match %**: `total_matched / total_rows`
+- **Report match_count**: single-counted = `total_matched / 2` (the number of matched row pairs, not the double-counted internal value)
+- **Report mismatch_count**: `max(lhs_row_count, rhs_row_count) - match_count`
 - **Special case**: When `total_rows = 0` (both sides have zero data rows), match % = 100.0 by definition. Both sides produced equivalent output (nothing). This is PASS.
 
-Example: LHS has 100 rows, RHS has 100 rows. 99 hash groups match (1 on each side). 1 hash group exists only on LHS, 1 only on RHS.
+**Example (hash mismatch):** LHS has 100 rows, RHS has 100 rows. 99 hash groups match (1 on each side). 1 hash group exists only on LHS, 1 only on RHS.
 - Matched: 99 × 2 = 198
 - Surplus: 1 (LHS only) + 1 (RHS only) = 2
 - Total rows: 100 + 100 = 200
 - Match %: 198 / 200 = 99.0%
+- Report: match_count: 99, mismatch_count: 1
+
+**Example (FUZZY mismatch):** LHS has 100 rows, RHS has 100 rows. All 100 hash groups match (1:1). 3 pairs fail FUZZY tolerance.
+- Matched: (100 - 3) × 2 = 194
+- Surplus: 3 × 2 = 6
+- Total rows: 200
+- Match %: 194 / 200 = 97.0%
+- Report: match_count: 97, mismatch_count: 3
 
 ### 1.6 PASS/FAIL Conditions
 
-BRD v3 defines PASS as ALL of the following (BR-11.25):
+BRD v3.1 defines PASS as ALL of the following (BR-11.25):
 
-1. Match % >= configured threshold
-2. All STRICT columns are byte-level exact matches
-3. All FUZZY columns are within their configured tolerances
-4. No line break style mismatch (CSV only)
-5. No schema mismatch
+1. Match % >= configured threshold (governs ALL row-level equivalence — both hash-level mismatches and FUZZY tolerance violations reduce match %)
+2. No schema mismatch (auto-fail)
+3. No line break style mismatch (CSV only) (auto-fail)
+4. No header mismatch (CSV only) (auto-fail)
+5. No trailer mismatch (CSV only) (auto-fail)
 
-FAIL is anything else (BR-11.26). This means a comparison can have 100% match rate at the hash level but still FAIL if a FUZZY column exceeds tolerance or line breaks differ.
+FAIL is anything else (BR-11.26). FUZZY tolerance violations are first-class mismatches that reduce match_count and match_percentage — they are NOT a separate pass/fail gate. The four auto-fail conditions are structural problems that cannot be meaningfully captured by a percentage.
 
 ### 1.7 pytest Conventions
 
@@ -318,7 +329,7 @@ And a parquet RHS directory with 1 part file containing the same 3 rows
 And a config with reader "parquet" and no column overrides
 When I run the comparison with --left and --right pointing to those directories
 Then the result is PASS
-And the report summary shows row_count_lhs: 3, row_count_rhs: 3, match_count: 6, mismatch_count: 0
+And the report summary shows row_count_lhs: 3, row_count_rhs: 3, match_count: 3, mismatch_count: 0
 And match_percentage is 100.0
 ```
 
@@ -333,7 +344,7 @@ And a parquet RHS directory with 1 part file containing the same 2 rows
 And a config with reader "parquet" and no column overrides
 When I run the comparison
 Then the result is PASS
-And the report summary shows match_count: 4, mismatch_count: 0
+And the report summary shows match_count: 2, mismatch_count: 0
 ```
 
 #### Scenario: Data difference detected and reported with detail [BR-3.7, BR-11.9]
@@ -350,7 +361,7 @@ And a parquet RHS directory with 1 part file containing rows:
 And a config with reader "parquet" and no column overrides
 When I run the comparison
 Then the result is FAIL
-And the report summary shows match_count: 2, mismatch_count: 2
+And the report summary shows match_count: 1, mismatch_count: 1
 And the mismatches section contains a hash group with lhs_count: 1, rhs_count: 0
 And a hash group with lhs_count: 0, rhs_count: 1
 ```
@@ -381,7 +392,7 @@ And a CSV RHS file with identical content
 And a config with reader "csv", header_rows: 1, trailer_rows: 0
 When I run the comparison
 Then the result is PASS
-And the report summary shows match_count: 4, mismatch_count: 0
+And the report summary shows match_count: 2, mismatch_count: 0
 ```
 
 #### Scenario: CSV with trailing control record, data matches [BR-3.11, BR-3.13]
@@ -396,7 +407,7 @@ And a CSV RHS file with identical content
 And a config with reader "csv", header_rows: 1, trailer_rows: 1
 When I run the comparison
 Then the result is PASS
-And the report summary shows match_count: 4, mismatch_count: 0
+And the report summary shows match_count: 2, mismatch_count: 0
 And the header_trailer_comparison section shows all headers and trailers match
 ```
 
@@ -438,7 +449,7 @@ And a CSV RHS file with content:
 And a config with reader "csv", header_rows: 1, trailer_rows: 0
 When I run the comparison
 Then the result is FAIL
-And the report summary shows match_count: 2, mismatch_count: 2
+And the report summary shows match_count: 1, mismatch_count: 1
 And the mismatches section contains unmatched hash groups for the differing rows
 ```
 
@@ -674,7 +685,7 @@ And a parquet RHS with the same rows in a different order:
 And a config with reader "parquet" and no column overrides
 When I run the comparison
 Then the result is PASS
-And the report summary shows match_count: 6, mismatch_count: 0
+And the report summary shows match_count: 3, mismatch_count: 0
 ```
 
 #### Scenario: Duplicate rows --- multiset comparison [BR-4.22]
@@ -918,7 +929,7 @@ And the report summary shows line_break_mismatch: true
 Because PASS requires no line break mismatch, even when all data matches
 ```
 
-#### Scenario: FUZZY tolerance failure causes FAIL despite 100% hash match rate [BR-11.25, BR-4.21]
+#### Scenario: FUZZY tolerance failure reduces match percentage [BR-11.25, BR-4.21]
 
 ```gherkin
 Given a parquet LHS with rows:
@@ -932,11 +943,13 @@ And a config with fuzzy columns:
 And account_id is STRICT (default)
 When I run the comparison
 Then the hash is computed on account_id only (balance is FUZZY, excluded from hash)
-And the hash groups match (same account_id on both sides)
-And match_percentage based on hash groups is 100.0
-But the result is FAIL
-Because |100.00 - 100.50| = 0.50, which exceeds the absolute tolerance of 0.01
+And the hash groups match (same account_id on both sides) — 1 pair at hash level
+But |100.00 - 100.50| = 0.50 exceeds the absolute tolerance of 0.01
+So the pair is reclassified as unmatched (FUZZY failure is a first-class mismatch)
+And the report summary shows match_count: 0, mismatch_count: 1, match_percentage: 0.0
+And the result is FAIL
 And the mismatches section shows the FUZZY column failure with actual_delta: 0.50
+Per match formula: hash-matched pairs = 1, fuzzy-failed pairs = 1, final matched = (1-1) × 2 = 0, total = 2, match % = 0.0%
 ```
 
 #### Scenario: Mismatch correlation pairs rows differing in few columns [BR-11.10]
@@ -1161,7 +1174,7 @@ And a parquet RHS with the same 50 rows
 And a config with reader "parquet" and no column overrides
 When I run the comparison
 Then the result is PASS
-And the report summary shows row_count_lhs: 50, row_count_rhs: 50, match_count: 100, mismatch_count: 0
+And the report summary shows row_count_lhs: 50, row_count_rhs: 50, match_count: 50, mismatch_count: 0
 ```
 
 ---

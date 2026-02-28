@@ -1,9 +1,10 @@
 # Proofmark Functional Specification Document
 
-**Version:** 1.0
+**Version:** 1.1
 **Date:** 2026-02-28
 **Status:** Draft — Pending Dan's Approval
-**Upstream:** BRD v3 (128 BR IDs, approved), Test Architecture v2 (60 BDD scenarios)
+**Upstream:** BRD v3.1 (128 BR IDs, audit-revised), Test Architecture v2.1 (60 BDD scenarios)
+**Revision:** v1.1 — FSD audit corrections (FUZZY-as-mismatch, match_count single-counted, null-safe sort, threshold integer math, tag count fix, and other audit findings)
 
 ---
 
@@ -266,7 +267,7 @@ class CorrelationResult:
 
 - **FSD-4.7:** `HashedRow.hash_key` is MD5 of STRICT columns only [BR-4.16]. `unhashed_content` is all non-excluded columns, pipe-delimited [BR-4.15].
 - **FSD-4.8:** `HashGroupResult.status` is `"MATCH"` or `"COUNT_MISMATCH"` [BR-4.19]. `matched_count = min(lhs_count, rhs_count)` [BR-11.14].
-- **FSD-4.9:** `DiffResult.total_matched` uses double-counting: `sum(matched_count × 2)` across all hash groups [BR-11.14].
+- **FSD-4.9:** `DiffResult.total_matched` uses double-counting: `sum(matched_count × 2)` across all hash groups [BR-11.14]. `matched_count` per group accounts for FUZZY failures: hash-matched pairs minus FUZZY-failed pairs.
 - **FSD-4.10:** `CorrelatedPair.confidence` is `"high"` for pairs exceeding the similarity threshold [BR-11.10].
 
 ### 4.4 Report Types — `report.py`
@@ -292,7 +293,7 @@ class HeaderTrailerResult:
     match: bool                          # Exact string match [BR-3.13]
 ```
 
-- **FSD-4.11:** `match_count` = number of unique row matches (single-counted: `total_matched / 2`). `mismatch_count` = `max(row_count_lhs, row_count_rhs) - match_count`. These are human-readable summary values; the internal `total_matched` (double-counted) drives `match_percentage` [BR-11.14].
+- **FSD-4.11:** `match_count` = number of matched row pairs (single-counted: `total_matched / 2`). This includes ONLY pairs that passed both hash-level matching AND FUZZY tolerance validation. `mismatch_count` = `max(row_count_lhs, row_count_rhs) - match_count`. These are human-readable summary values; the internal `total_matched` (double-counted) drives `match_percentage` [BR-11.14].
 - **FSD-4.12:** `HeaderTrailerResult.match` is exact literal string comparison [BR-3.13].
 
 ---
@@ -381,6 +382,7 @@ class ConfigError(Exception):
 | FUZZY `reason` required | Missing on any FUZZY column | BR-5.8 | FSD-5.2.9 |
 | No duplicate classifications | Same column in both EXCLUDED and FUZZY lists | BR-5.1 | FSD-5.2.10 |
 | `threshold` range | Must be 0.0 ≤ threshold ≤ 100.0 | BR-11.22 | FSD-5.2.11 |
+| FUZZY `tolerance` range | Must be >= 0.0 (negative tolerance is always-fail, a config error) | BR-7.7 | FSD-5.2.11a |
 | YAML parseable | File is not valid YAML | BR-6.5 | FSD-5.2.12 |
 
 **FSD-5.2.13:** Parsing logic:
@@ -634,14 +636,15 @@ def diff(
 3. **Per hash key:**
    - `lhs_list = lhs_groups.get(key, [])`, `rhs_list = rhs_groups.get(key, [])`.
    - `lhs_count = len(lhs_list)`, `rhs_count = len(rhs_list)`.
-   - **FSD-5.6.3 [BR-11.14]:** `matched_count = min(lhs_count, rhs_count)`.
+   - **FSD-5.6.3 [BR-11.14]:** `hash_matched_count = min(lhs_count, rhs_count)`. This is the hash-level match count before FUZZY validation. Final `matched_count` may be lower after FUZZY failures (see FSD-5.6.6).
    - **FSD-5.6.4 [BR-4.19, BR-4.20]:** Status: `"MATCH"` if `lhs_count == rhs_count`, else `"COUNT_MISMATCH"`.
    - **FSD-5.6.5 [BR-4.20]:** Surplus rows: if `lhs_count > rhs_count` → last `(lhs_count - rhs_count)` LHS rows are surplus (as `UnmatchedRow`, side=`"lhs"`). Vice versa for RHS surplus.
-   - **FSD-5.6.6 [BR-4.21]:** FUZZY validation: if `matched_count > 0` and `len(fuzzy_columns) > 0`:
-     - **FSD-5.6.7:** Sort both sides' first `matched_count` rows for deterministic pairing. Sort key: `(tuple(row.fuzzy_values[col.name] for col in fuzzy_columns), row.unhashed_content)`. The sort exists solely for determinism — any consistent ordering that pairs the same rows on repeated runs is acceptable. The specific comparator is an implementation detail; the requirement is that identical inputs always produce identical pairings.
-     - Pair row-by-row: `lhs_list[i]` with `rhs_list[i]` for `i` in `0..matched_count-1`.
+   - **FSD-5.6.6 [BR-4.21]:** FUZZY validation: if `hash_matched_count > 0` and `len(fuzzy_columns) > 0`:
+     - **FSD-5.6.7:** Sort both sides' first `hash_matched_count` rows for deterministic pairing. Sort key must be null-safe: `(tuple(_null_safe_sort_val(row.fuzzy_values[col.name]) for col in fuzzy_columns), row.unhashed_content)` where `_null_safe_sort_val(v)` returns a tuple like `(0, 0.0)` for `None` and `(1, v)` for non-None values, ensuring nulls sort deterministically without raising `TypeError`. The sort exists solely for determinism — any consistent ordering that pairs the same rows on repeated runs is acceptable.
+     - Pair row-by-row: `lhs_list[i]` with `rhs_list[i]` for `i` in `0..hash_matched_count-1`.
      - For each pair, call `tolerance.check_fuzzy()` on each FUZZY column.
      - Collect any `FuzzyFailure` results.
+     - **FSD-5.6.6a:** FUZZY failures are first-class mismatches [BR-4.21, BR-11.14]: for each FUZZY-failed pair, decrement `matched_count` by 1 and add both the LHS and RHS row from the failed pair to `surplus_rows` as `UnmatchedRow` entries. Final `matched_count = hash_matched_count - fuzzy_failed_count`.
    - **FSD-5.6.8 [BR-11.20]:** Include in output `hash_groups` list only if: status is `"COUNT_MISMATCH"` OR there are FUZZY failures. Groups where everything matches are omitted.
 
 4. **FSD-5.6.9 [BR-11.14]:** Accumulate totals:
@@ -653,7 +656,7 @@ def diff(
 
 5. Return `DiffResult`.
 
-**FSD-5.6.10 [BR-11.13–18]:** Match percentage:
+**FSD-5.6.10 [BR-11.13–18]:** Match percentage (for report display):
 ```python
 total_rows = total_lhs + total_rhs
 if total_rows == 0:
@@ -662,7 +665,11 @@ else:
     match_percentage = (total_matched / total_rows) * 100.0
 ```
 
-**FSD-5.6.11 [BR-11.18]:** Example: LHS=5000 rows, RHS=5001 rows. One RHS row has a unique hash. `total_matched = 10000`. `total_rows = 10001`. `match_percentage = 99.99%`.
+Note: `total_matched` reflects FUZZY failures — pairs that failed FUZZY validation have been removed from the matched count (see FSD-5.6.6a). `match_percentage` is computed as a float for report display only. The PASS/FAIL decision uses integer-based threshold comparison (see FSD-5.10.11).
+
+**FSD-5.6.11 [BR-11.18]:** Example (hash mismatch): LHS=5000 rows, RHS=5001 rows. One RHS row has a unique hash. `total_matched = 10000`. `total_rows = 10001`. `match_percentage = 99.99%`.
+
+Example (FUZZY mismatch): LHS=100 rows, RHS=100 rows. All hash groups match 1:1. 3 pairs fail FUZZY. `total_matched = (100-3) × 2 = 194`. `total_rows = 200`. `match_percentage = 97.0%`.
 
 ---
 
@@ -709,7 +716,7 @@ passes = delta / denominator <= tolerance
 **Edge cases:**
 - **FSD-5.7.3 [BR-7.4]:** Both values zero: `delta = 0`. Short-circuit to pass. `actual_delta = 0.0`. For relative: avoids `0/0`.
 - **FSD-5.7.4 [BR-7.5]:** One value zero, other non-zero: relative formula naturally handles this. `|0 - 0.0001| / max(0, 0.0001) = 1.0`. Fails any reasonable tolerance. No special-casing needed.
-- **FSD-5.7.5:** Non-numeric FUZZY value: `float()` conversion raises `ValueError`. Pipeline treats this as exit code 2 — a FUZZY column must contain numeric data.
+- **FSD-5.7.5:** Non-numeric FUZZY value: `float()` conversion raises `ValueError`. The tolerance module catches this and raises a descriptive `ConfigError` with the column name, the offending value, and a message indicating the column should not be classified as FUZZY (e.g., "FUZZY column 'status' contains non-numeric value 'active'"). Exit code 2.
 
 **FSD-5.7.6:** Return value: on failure, `FuzzyFailure` includes `actual_delta`. For absolute: the raw delta. For relative: `delta / denominator`.
 
@@ -787,8 +794,12 @@ def build_schema_fail_report(
     schema_mismatches: list[str],
     lhs_row_count: int,
     rhs_row_count: int,
+    line_break_mismatch: bool | None,
 ) -> dict:
-    """Build a FAIL report for schema mismatch (no diff data)."""
+    """Build a FAIL report for schema mismatch (no diff data).
+    line_break_mismatch is included because the line break check
+    runs before schema validation (FSD-5.10.3) and its result is
+    known even when schema validation short-circuits the pipeline."""
 
 
 def serialize_report(report: dict) -> str:
@@ -902,11 +913,12 @@ correlation = correlate(
 
 **FSD-5.10.9:** Step 8 — Compute summary:
 ```
-match_percentage = compute_match_percentage(diff_result)  # See FSD-5.6.10
-match_count = diff_result.total_matched // 2              # See FSD-4.11
+match_percentage = compute_match_percentage(diff_result)  # See FSD-5.6.10 (float, for display)
+match_count = diff_result.total_matched // 2              # See FSD-4.11 (single-counted)
 mismatch_count = max(diff_result.total_lhs, diff_result.total_rhs) - match_count
-result = determine_result(...)                            # See FSD-5.10.11
+result = determine_result(...)                            # See FSD-5.10.11 (integer threshold)
 ```
+Note: `total_matched` already accounts for FUZZY failures (FSD-5.6.6a). No separate FUZZY check needed.
 
 **FSD-5.10.10 [BR-11.1]:** Step 9 — Build report:
 ```
@@ -926,19 +938,26 @@ return build_report(...)
 #### 5.10.1 PASS/FAIL Determination
 
 **FSD-5.10.11 [BR-11.25–26]:**
+
+Threshold comparison uses integer math to avoid floating-point precision issues [BR-11.22]:
 ```python
+required_matched = math.ceil(total_rows * config.threshold / 100.0)
+threshold_passes = total_matched >= required_matched
+# Special case: total_rows == 0 → threshold_passes = True
+
 result = "PASS" if ALL of the following:
-    match_percentage >= config.threshold     # [BR-11.22]
-    len(all_fuzzy_failures) == 0             # All FUZZY within tolerance
-    line_break_mismatch is not True          # No line break difference (CSV) [BR-4.2]
-    len(schema_mismatches) == 0              # Schemas match [BR-4.9]
-    no header mismatches (CSV)               # [BR-11.25, BR-3.13]
-    no trailer mismatches (CSV)              # [BR-11.25, BR-3.13]
+    threshold_passes                         # [BR-11.22] — governs ALL row-level mismatches
+    line_break_mismatch is not True          # Auto-fail: line break difference (CSV) [BR-4.2]
+    len(schema_mismatches) == 0              # Auto-fail: schemas differ [BR-4.9]
+    no header mismatches (CSV)               # Auto-fail [BR-11.25, BR-3.13]
+    no trailer mismatches (CSV)              # Auto-fail [BR-11.25, BR-3.13]
 else:
     result = "FAIL"
 ```
 
-A comparison can have 100% hash-level match and still FAIL if a FUZZY column exceeds tolerance [test scenario 42], line breaks differ [test scenario 41], or headers/trailers differ [test scenarios 7–8]. Headers and trailers are part of the equivalence certification — if LHS has it, RHS must match it exactly.
+The threshold is the single control for row-level equivalence. Both hash-level mismatches (STRICT column differences) and FUZZY tolerance violations reduce `total_matched` and are governed by the same threshold. There is no separate FUZZY pass/fail gate [BR-4.21]. The four auto-fail conditions are structural problems that cannot be meaningfully captured by a percentage.
+
+`match_percentage` is still computed as a float for the report (`total_matched / total_rows * 100.0`) but the PASS/FAIL decision uses integer comparison to avoid floating-point boundary issues.
 
 #### 5.10.2 `compare_lines` helper
 
@@ -1108,7 +1127,8 @@ This is the complete JSON structure that `report.py` produces. Every field maps 
     "match_percentage": 99.99,
     "result": "PASS",
     "threshold": 99.5,
-    "line_break_mismatch": false
+    "line_break_mismatch": false,
+    "_note": "match_count is single-counted (number of matched row pairs). match_percentage = (match_count × 2) / (row_count_lhs + row_count_rhs) × 100"
   },
 
   "header_comparison": [
@@ -1185,7 +1205,7 @@ This is the complete JSON structure that `report.py` produces. Every field maps 
 }
 ```
 
-**FSD-7.1 [BR-11.2]:** `metadata` includes `timestamp` (ISO 8601 UTC), `proofmark_version` (from `importlib.metadata.version("proofmark")`), `comparison_target`, and `config_path`.
+**FSD-7.1 [BR-11.2]:** `metadata` includes `timestamp` (ISO 8601 UTC, second precision, no fractional seconds — e.g., `"2026-02-28T14:30:00Z"`), `proofmark_version` (from `importlib.metadata.version("proofmark")`), `comparison_target`, and `config_path`. Timestamp is generated via `datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")`.
 
 **FSD-7.2 [BR-11.3]:** `config` is the full echo of the raw YAML content as parsed.
 
@@ -1239,7 +1259,7 @@ class EncodingError(ReaderError):
 | Schema mismatch | `schema.validate_schema()` | 1 | Yes (FAIL report) | FSD-8.7 |
 | Comparison FAIL | Pipeline | 1 | Yes (FAIL report) | FSD-8.8 |
 | Comparison PASS | Pipeline | 0 | Yes (PASS report) | FSD-8.9 |
-| `ValueError` (non-numeric FUZZY) | `tolerance.check_fuzzy()` | 2 | No | FSD-8.10 |
+| `ConfigError` (non-numeric FUZZY) | `tolerance.check_fuzzy()` → caught and wrapped | 2 | No | FSD-8.10 |
 | Unexpected exception | Any | 2 | No | FSD-8.11 |
 
 ### 8.3 Error Output
@@ -1324,6 +1344,8 @@ This FSD advances the following TAR register items:
 
 ## Appendix A: Test File Mapping
 
+**Note on test file organization:** The Test Architecture v2 organizes tests by **feature area** (12 areas, 12 test files). This FSD reorganizes tests by **module** (11 test files). This is a deliberate departure — unit tests target module contracts, not feature areas. Some scenarios appear in multiple test files because they are tested at both the unit level (testing a specific module's behavior) and the integration level (testing end-to-end pipeline behavior). This overlap is intentional multi-level testing, not duplication.
+
 Each test file maps to one or more feature areas from the Test Architecture v2. Test scenarios are referenced by number from that document.
 
 | Test File | Feature Area | Scenarios | Fixture Directories |
@@ -1344,7 +1366,7 @@ Each test file maps to one or more feature areas from the Test Architecture v2. 
 
 ## Appendix B: FSD Tag Index
 
-Total FSD tags: 112
+Total FSD tags: 117
 
 | Range | Section | Count |
 |-------|---------|-------|
@@ -1352,13 +1374,13 @@ Total FSD tags: 112
 | FSD-3.1 | Dependencies | 1 |
 | FSD-4.1–4.12 | Data Model | 12 |
 | FSD-5.1.1–5.1.12 | CLI | 12 |
-| FSD-5.2.1–5.2.14 | Configuration | 14 |
-| FSD-5.3.1–5.3.19 | Readers | 19 |
+| FSD-5.2.1–5.2.15, 5.2.11a | Configuration | 16 |
+| FSD-5.3.1–5.3.19, 5.3.10a | Readers | 20 |
 | FSD-5.4.1–5.4.5 | Schema Validator | 5 |
 | FSD-5.5.1–5.5.11 | Hash Engine | 11 |
-| FSD-5.6.1–5.6.11 | Diff Engine | 11 |
-| FSD-5.7.1–5.7.7 | Tolerance | 7 |
-| FSD-5.8.1–5.8.7 | Correlator | 7 |
+| FSD-5.6.1–5.6.11, 5.6.6a | Diff Engine | 12 |
+| FSD-5.7.1–5.7.8 | Tolerance | 8 |
+| FSD-5.8.1–5.8.8 | Correlator | 8 |
 | FSD-5.9.1–5.9.4 | Report Generator | 4 |
 | FSD-5.10.1–5.10.12 | Pipeline | 12 |
 | FSD-6.1–6.16 | Cross-Cutting | 16 |

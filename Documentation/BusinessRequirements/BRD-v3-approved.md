@@ -1,9 +1,10 @@
 # Proofmark — Business Requirements Document
 
-**Version:** 3.0
-**Date:** 2026-03-01
+**Version:** 3.1
+**Date:** 2026-02-28
 **Status:** Draft
 **Classification:** Internal — Working Document
+**Revision:** v3.1 — FSD audit corrections (FUZZY-as-mismatch, match_count semantics, threshold precision)
 
 ---
 
@@ -201,7 +202,7 @@ Rationale: even if no data would be truncated, a schema mismatch indicates the r
 - **[BR-4.19]** **Hash group exists in both LHS and RHS:** Compare counts. If LHS count equals RHS count, all rows in the group are matched. If counts differ, the surplus rows (|lhsCount - rhsCount|) are unmatched.
 - **[BR-4.20]** **Hash group exists in only one side:** All rows in the group are unmatched (0 matches, counted as surplus).
 
-**[BR-4.21]** Within each matched hash group, validate **FUZZY columns** against their configured tolerances (see Section 7). Any FUZZY column value exceeding its tolerance is a mismatch.
+**[BR-4.21]** Within each matched hash group, validate **FUZZY columns** against their configured tolerances (see Section 7). Any FUZZY column value exceeding its tolerance is a mismatch — both the LHS and RHS row in the failed pair are reclassified as unmatched, reducing the matched count for that hash group. FUZZY tolerance violations are first-class mismatches: they reduce the match percentage and are governed by the same threshold as hash-level mismatches. There is no separate FUZZY pass/fail gate.
 
 **[BR-4.22]** **Duplicate row handling:** This is multiset comparison, not set comparison. If the LHS has 3 identical rows (after EXCLUDED column removal and STRICT column hashing), the RHS must also have exactly 3. Row counts per hash group matter.
 
@@ -438,7 +439,7 @@ Encoding detection and normalization for CSV files (which have no embedded encod
 
 **[BR-11.5]** **Summary:**
 - Row counts (LHS, RHS)
-- Match count
+- Match count (single-counted: the number of row pairs that matched. Not the double-counted internal value used for percentage calculation.)
 - Mismatch count
 - Match percentage (see formula below)
 - Pass/fail stamp
@@ -468,13 +469,15 @@ Encoding detection and normalization for CSV files (which have no embedded encod
 
 **[BR-11.13]** The match percentage represents the proportion of rows that are equivalent across both sides:
 
-- **[BR-11.14]** **Per hash group:** matched = min(lhsCount, rhsCount) x 2 (each matched row is counted on both the LHS and RHS side)
-- **[BR-11.15]** **Surplus per group:** |lhsCount - rhsCount| — these are unmatched rows
+- **[BR-11.14]** **Per hash group:** hash-level matched pairs = min(lhsCount, rhsCount). If FUZZY columns exist, each matched pair is validated against FUZZY tolerances. Pairs that fail FUZZY validation are reclassified as unmatched. Final matched for the group = (hash-matched pairs - FUZZY-failed pairs) x 2 (each matched row is counted on both the LHS and RHS side). FUZZY-failed rows from both sides become surplus/unmatched.
+- **[BR-11.15]** **Surplus per group:** |lhsCount - rhsCount| from hash-level count mismatch, PLUS any FUZZY-failed pairs x 2 — these are all unmatched rows
 - **[BR-11.16]** **Rows unique to one side:** Hash groups existing only in LHS or only in RHS contribute 0 matches. All rows in such groups count as surplus.
 - **[BR-11.17]** **Total rows:** LHS row count + RHS row count (the denominator spans both sides)
 - **[BR-11.18]** **Match percentage:** totalMatched / totalRows
 
-Example: LHS has 5,000 rows. RHS has 5,001 rows. One RHS row has no corresponding LHS row. totalMatched = 5,000 x 2 = 10,000. totalRows = 5,000 + 5,001 = 10,001. Match percentage = 10,000 / 10,001 = 99.99%.
+**Example (hash mismatch):** LHS has 5,000 rows. RHS has 5,001 rows. One RHS row has no corresponding LHS row. totalMatched = 5,000 x 2 = 10,000. totalRows = 5,000 + 5,001 = 10,001. Match percentage = 10,000 / 10,001 = 99.99%.
+
+**Example (FUZZY mismatch):** LHS has 100 rows. RHS has 100 rows. All 100 hash groups have 1 LHS row and 1 RHS row (perfect hash match). 3 of those pairs fail FUZZY tolerance validation. Final matched = (100 - 3) x 2 = 194. totalRows = 200. Match percentage = 194 / 200 = 97.0%. At a 99.5% threshold, this is FAIL. At a 95.0% threshold, this is PASS. The threshold governs all row-level mismatches uniformly — there is no distinction between a STRICT mismatch and a FUZZY mismatch for pass/fail purposes.
 
 **[BR-11.19]** The report shows per-hash-group breakdown with hash value, LHS count, RHS count, and status.
 
@@ -487,10 +490,17 @@ Example: LHS has 5,000 rows. RHS has 5,001 rows. One RHS row has no correspondin
 
 ### Pass/Fail Logic
 
-- **[BR-11.22]** Threshold is in the configuration (e.g., 99.5% match required).
+- **[BR-11.22]** Threshold is in the configuration (e.g., 99.5% match required). The threshold comparison must be deterministic and not subject to floating-point precision artifacts. The implementation must ensure that boundary cases (e.g., exactly 99.5% match rate with a 99.5% threshold) produce consistent, correct results.
 - **[BR-11.23]** Default threshold: 100.0% (consistent with default-strict philosophy). Any surplus row = FAIL at default threshold.
 - **[BR-11.24]** The report always shows ALL mismatches regardless of pass/fail.
-- **[BR-11.25]** PASS = match percentage >= threshold with all STRICT columns exact and all FUZZY columns within tolerance, and no line break mismatch flag (CSV), and no schema mismatch, and no header/trailer mismatch (CSV). Headers and trailers must be byte-for-byte equivalent — they are part of the equivalence certification, not advisory metadata.
+- **[BR-11.25]** PASS requires ALL of the following:
+  - Match percentage >= threshold (the single control for row-level equivalence — both hash-level mismatches and FUZZY tolerance violations reduce the match percentage and are governed by this threshold)
+  - No schema mismatch (auto-fail)
+  - No line break mismatch flag (CSV) (auto-fail)
+  - No header mismatch (CSV) (auto-fail)
+  - No trailer mismatch (CSV) (auto-fail)
+
+  The four auto-fail conditions are structural problems that cannot be meaningfully captured by a percentage. Headers and trailers must be byte-for-byte equivalent — they are part of the equivalence certification, not advisory metadata.
 - **[BR-11.26]** FAIL = anything else.
 
 *(Decision 10, Design Session 002; T-8, T-10, T-12, Revision Log)*
@@ -670,6 +680,15 @@ Every requirement in this BRD traces to a specific decision in the design sessio
 | 16. Out of Scope (Permanent) | — | Design Session 002 | BR-16.1 |
 
 Foundational architecture (format-agnostic engine, pluggable readers, three-tier threshold model, SDLC approach) originates from Design Session 001 (2026-02-27). All 18 numbered decisions originate from Design Session 002 (2026-02-28). Structural and technical refinements (S-1 through S-5, T-1 through T-13) originate from the BRD Revision Log (2026-03-01).
+
+**v3.1 Revisions (FSD v1 Audit, 2026-02-28):**
+
+| Change | BR IDs Affected | Rationale |
+|--------|----------------|-----------|
+| FUZZY failures are first-class mismatches | BR-4.21, BR-11.14, BR-11.15, BR-11.25 | FUZZY tolerance violations now reduce match count/percentage. No separate FUZZY pass/fail gate. Threshold governs all row-level mismatches uniformly. |
+| match_count is single-counted in report | BR-11.5 | Clarified that report match_count = matched pairs (not the internal double-counted value). Resolves inconsistency between BRD, test architecture, and FSD. |
+| Threshold precision requirement | BR-11.22 | Threshold comparison must not be subject to floating-point precision artifacts. Implementation must handle boundary cases correctly. |
+| Auto-fail conditions enumerated | BR-11.25 | PASS/FAIL conditions restructured. Four auto-fails (schema, line breaks, headers, trailers) listed explicitly. All row-level equivalence governed by threshold alone. |
 
 ---
 
