@@ -125,15 +125,204 @@ The prior QBV tool whiffed on this. It used Python's standard CSV lib, which par
 
 **This should be documented in the BRD for the vendor build. There's a good chance this turns into a waterfall BRD for an offshore team.**
 
+### 10. Report Output Format: JSON File, One Per Comparison Target
+
+**Two audiences:** QA agent (machine consumer — needs structured data to parse pass/fail) and human reviewer (needs readable summary for governance). JSON serves both: machine-parseable, human-readable enough for a POC.
+
+**Report contents:**
+- **Metadata:** timestamp, proofmark version, comparison target name, config file path
+- **Config echo:** full config used, embedded so the report is self-contained
+- **Column classification:** which columns are tier 1/2/3, with justifications echoed from config
+- **Summary:** row counts (source A, source B), match count, mismatch count, match percentage, pass/fail stamp, threshold used
+- **Mismatches:** every mismatch — row hash, column name, value A, value B, tier, (for tier 3: tolerance and actual delta)
+
+**What's NOT in the report:**
+- Matched rows. Nobody needs 10 million "yep, same" entries. Row counts and match percentage cover it.
+- Platform-specific context (job names, OFW IDs, etc.) — not Proofmark's domain.
+
+**Pass/fail logic:**
+- Threshold is in the config (e.g., 99.5% match required)
+- Report always shows ALL mismatches regardless of pass/fail
+- Default threshold: 100% (strict default, consistent with tier 2 default)
+
+**Production constraint (documented, not solved):** In production, mismatch detail with actual cell values is a PII/PCI/SOX problem. The report itself becomes a classified artifact. Production version strips values from mismatch detail — shows row hash, column name, tier, match/fail, but no actual data. Detail goes to a secured location with restricted access. The rest of the report (metadata, summary, classification, stamp) is clean. This is vendor-build territory — the POC includes full values because it makes the exercise faster and nobody's looking at real data.
+
+### 11. Per-Target Configuration Schema: YAML
+
+**Format: YAML.** Supports inline comments (natural place for justifications), less noisy than JSON, human-editable, and Python has native support. QA agents can generate these programmatically just as easily as JSON.
+
+**Schema:**
+
+```yaml
+comparison_target: daily_balance_feed    # Human-readable name
+reader: csv                              # "csv" or "parquet"
+source_a: /data/original/daily_balance.csv
+source_b: /data/rewrite/daily_balance.csv
+
+# Reader-specific config (omit section if not applicable)
+csv:
+  header_rows: 1      # Rows to skip before data (compared as literal strings)
+  trailer_rows: 1      # Rows to skip after data (compared as literal strings)
+
+# Strictness settings (both default to "strict")
+encoding: strict       # "strict" or "normalize"
+line_breaks: strict    # "strict" or "normalize"
+
+# Pass/fail threshold (default 100.0)
+threshold: 100.0
+
+# Column classification
+# Everything NOT listed here defaults to tier 2 (exact match)
+columns:
+  tier_1:  # Excluded before hashing — requires justification
+    - name: run_id
+      reason: Non-deterministic UUID assigned at runtime
+    - name: load_timestamp
+      reason: Execution timestamp, varies per run
+
+  tier_3:  # Tolerance match — requires justification and tolerance value
+    - name: interest_accrued
+      tolerance: 0.01
+      reason: Floating point rounding between Spark and ADF engines
+```
+
+**Design notes:**
+- Parquet configs omit the `csv` section entirely. Parquet reader only needs directory paths (source_a, source_b).
+- Default-strict philosophy: if you omit `encoding`, `line_breaks`, `threshold`, or `columns`, you get the strictest possible comparison. Relaxation requires explicit config + justification.
+- The `reason` field on tier 1 and tier 3 columns flows into the report's column classification section and the evidence package. It's the audit trail.
+- No `tier_2` list needed — everything unlisted is tier 2 by default. Listing would be redundant noise.
+
+### 12. CLI Interface: Single Command, Stdout Default
+
+**Invocation:**
+
+```bash
+proofmark compare --config path/to/target.yaml
+```
+
+One config, one comparison, one report. The config file is the single source of truth — no CLI flags to override config values.
+
+**Output:** JSON report to stdout by default. `--output path/to/report.json` to write to file. Stdout is ideal for agent workflows (pipe it, parse it, move on). File output is for evidence packaging.
+
+**Exit codes:**
+- `0` = comparison ran, PASS
+- `1` = comparison ran, FAIL
+- `2` = error (bad config, file not found, parse failure)
+
+Exit codes let the QA agent script pass/fail without parsing the report.
+
+**What it doesn't have (by design):**
+- No verbosity flags. POC runs one way. Verbose/quiet/normal is a vendor NFR.
+- No batch mode. Running multiple configs is orchestration, not Proofmark's job.
+- No dry-run. Nothing useful to validate without actually running the comparison.
+
+**Production note:** Stdout-default is great for a POC and agent pipelines. A vendor product would likely default to file output with a structured output directory. That's their problem.
+
+### 13. Evidence Package: Not Proofmark's Job
+
+Proofmark produces a comparison report. That report is one *input* to a governance evidence package. Assembly of the evidence package is a QA process concern — human or agent — not a tool concern.
+
+**An evidence package includes things Proofmark has no business knowing about:**
+- Which OFW job(s) map to this comparison target
+- Business context ("daily balance feed to downstream system X")
+- Job owner / SME sign-off
+- Proofmark comparison report(s) — linked, not embedded
+- Exception approvals (why tier 1 exclusions were accepted)
+- Attestation statement ("output equivalence certifies equivalence to original, NOT correctness")
+
+**Why Proofmark's report works as evidence:** It's self-contained. Config echo, column classification with justifications, full mismatch detail, pass/fail stamp. You can drop it into an evidence package and it's interpretable without external context.
+
+**For the POC:** Define what an evidence package looks like conceptually (markdown template or directory structure), but don't build assembly tooling. Proofmark outputs JSON. Packaging is manual for the demo.
+
+### 14. Tolerance Specification: Absolute and Relative, Per Column
+
+**Both types supported, configurable per tier 3 column.** No hardwired defaults on tolerance type — the person configuring it makes a conscious choice and justifies it. An independent tool that bakes in assumptions isn't independent.
+
+**Config:**
+
+```yaml
+tier_3:
+  - name: interest_accrued
+    tolerance: 0.01
+    tolerance_type: absolute
+    reason: Floating point rounding between Spark and ADF engines
+
+  - name: market_value
+    tolerance: 0.001
+    tolerance_type: relative
+    reason: Rounding variance scales with value magnitude
+```
+
+**Rules:**
+- `tolerance_type` is **required** on every tier 3 column. No default. Forces explicit, justified choice.
+- **Absolute:** `|a - b| <= tolerance`
+- **Relative:** `|a - b| / max(|a|, |b|) <= tolerance` — divides by the larger absolute value.
+- Both values are 0 → match (zero delta).
+- One value is 0, other isn't → math works naturally. `|0 - 0.0001| / max(0, 0.0001) = 1.0` — 100% relative difference, fails any reasonable tolerance. No special case needed.
+
+**No "percentage" type.** Relative with `tolerance: 0.01` *is* 1%. Adding a third label for the same math creates confusion for zero value-add.
+
+### 15. Test Data Strategy: Realistic Variance Between "Original" and "Rewrite"
+
+**The problem:** If MockEtlFramework produces both "original" and "rewritten" outputs using the same libraries, floating point behavior, timestamp formatting, and rounding are identical on both sides. Tier 3 tolerance logic never gets exercised against real variance. The demo would be showing a feature that was never actually stress-tested.
+
+**The decision:** MockEtlFramework must produce original and rewritten outputs using different libraries or settings for specific jobs. This creates the kind of variance that actually shows up during a real migration — where a 500-line PySpark job importing six random libraries gets replaced with clean Spark SQL, and every library has opinions about rounding, null coercion, date formatting, and encoding.
+
+**POC approach — toggle library behavior per job:**
+- Job A: `ROUND_HALF_UP` (original) vs. `ROUND_HALF_EVEN` / banker's rounding (rewrite)
+- Job B: timestamp precision difference (seconds vs. microseconds)
+- Job C: identical output on both sides (exact match happy path)
+
+This gives three demo scenarios: tolerance pass (variance within threshold), tolerance fail (variance exceeds threshold), and exact match. All realistic, all from one framework toggling behavior.
+
+**Why this matters for the CIO deck:** "We tested tolerance comparison against actual library-level variance, not synthetic data" is a much stronger statement than "we tweaked some numbers by hand." It mirrors the real migration challenge — replacing bespoke external modules with standardized Spark SQL and proving the outputs are equivalent within documented tolerances.
+
+### 16. Hash Algorithm: MD5 for POC, Don't Advertise It
+
+**MD5 is the right tool for this job.** It's fast, universally available, and produces excellent distribution for row comparison and sorting. Collision risk is irrelevant — this is a comparison hash, not a security function. Nobody's crafting adversarial ETL outputs.
+
+**The optics problem:** "MD5 bad" is a reflex response from people who learned it in security training without context. It's exhausting and not worth the argument.
+
+**POC approach:** Use MD5. Don't surface the algorithm name in report output. Reports show row hashes for mismatch identification — the algorithm that produced them is an implementation detail. If asked: "it's a comparison hash, not a security function."
+
+**Production:** Make the algorithm configurable. Let the vendor offer SHA256 if it makes compliance happy. It's slower for zero benefit in this use case, but that's their trade-off. The architecture doesn't care — hash is hash, swap the function, pipeline works the same.
+
+### 17. Null Handling: Byte-Level, No Normalization
+
+**Parquet:** Non-issue. Parquet has a typed schema with native null support. Null is null, not empty string, not `"NULL"`. The format enforces it. Two nulls = match. Null vs. empty string = mismatch, correctly, because the schema says they're different things.
+
+**CSV:** This is where it matters. The wild west of null representation:
+- Empty field (`,,`)
+- Empty quoted string (`,"",`)
+- Literal `NULL`, `null`, `\N`, `NA`, `N/A`, `NaN`
+- Whitespace (`, ,`)
+
+Every upstream system has its own opinion. If the original wrote `NULL` and the rewrite writes an empty field, that's a **legitimate mismatch**. Downstream systems with brittle parsers treat these differently. Real consequences.
+
+**The rule: byte-level comparison. No null normalization.** `NULL` ≠ `` ≠ `""` ≠ `null`. If the bytes are different, it's a mismatch. Consistent with default-strict philosophy.
+
+The *rewrite process* is responsible for matching the original's null representation. That's an easy fix when Proofmark flags it — cast your nulls to match the expected format. The comparison tool doesn't paper over it.
+
+**Null handling in hash:** No special treatment. Nulls (however represented) are bytes in the row. They hash like everything else. Simplest possible implementation.
+
+### 18. SDLC Flow: BRD Through Code
+
+**Agreed development flow:**
+
+1. **BRD** — Formalize business requirements from design sessions 001 + 002 into a proper document.
+2. **Test architecture + BDD scenarios** — What we're testing, acceptance criteria, organized by feature. Given/When/Then against business requirements, not implementation.
+3. **Adversarial review** — Gaps in the test plan. What scenarios aren't covered?
+4. **Test data management** — Design and generate fixtures that cover the BDD scenarios. Parquet multi-part files, CSVs with trailers, rounding variance (decision 15), null representation mismatches, happy-path exact matches. Test data comes from BDD scenarios, independent of code structure.
+5. **FSD** — Modules, interfaces, function signatures, data flow. The code architecture.
+6. **UTs** — pytest code written against FSD interfaces, using test data from step 4.
+7. **Code** — Make the tests pass.
+
+**Why this ordering:**
+- BDD scenarios are testable requirements without implementation assumptions. They bridge business requirements and code.
+- Test data and FSD are independent (test data derives from BDD scenarios, FSD derives from BRD) — could be parallel, but sequential is fine for a POC.
+- UTs need both the FSD (to know what to call) and test data (to know what to feed it). They come after both.
+- Test data fixtures double as demo assets for the CIO presentation.
+
 ## Still Open (To Discuss Before Building)
 
-These were NOT resolved in this session:
-
-- **Report output format** — What does the comparison result look like? File on disk? Console? JSON/CSV/Markdown? What does a human or QA agent need to see?
-- **Per-target configuration schema** — We know what fields exist (reader type, header/trailer rows, tier 1/2/3 columns, encoding strictness, line break strictness). What's the config file format? YAML? JSON?
-- **CLI interface** — How does a QA agent invoke Proofmark? `proofmark compare --config job_x.yaml`?
-- **Evidence package format** — What's the final governance deliverable? How does a comparison report feed into the attestation package?
-- **Tolerance specification** — Tier 3 says "within tolerance." How is tolerance defined per column? Absolute? Relative? Percentage?
-- **Hash algorithm choice** — MD5? SHA256? Performance vs. collision risk tradeoff.
-- **Null handling** — How are nulls treated in hash, comparison, and reporting?
-- **Test case design** — The first real SDLC artifact. TDD/BDD cases for Dan to review.
+All original open items from this session have been resolved (decisions 10–18). Remaining work is execution per the SDLC flow above. Next artifact: BRD.
