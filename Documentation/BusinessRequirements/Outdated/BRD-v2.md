@@ -313,7 +313,7 @@ columns:
 
 - Parquet configs omit the `csv` section entirely. The parquet reader only needs the directory paths provided via CLI.
 - If `encoding`, `threshold`, or `columns` are omitted, the strictest possible defaults apply. Relaxation requires explicit configuration plus justification.
-- The `reason` field on EXCLUDED and FUZZY columns flows into the report's column classification section. It is the audit trail.
+- The `reason` field on EXCLUDED and FUZZY columns flows into the report's column classification section. It is the audit trail. Justifications must be evidentiary — they must cite specific instances in the data or code that demonstrate why the relaxation is necessary (e.g., "Column `load_timestamp` is assigned at runtime per `DataWriter.cs:47`; values differ between original and rewrite executions"). Vague rationale ("this column changes sometimes") is not acceptable.
 - There is no `strict` list. Everything unlisted is STRICT by default. Listing STRICT columns would be redundant noise.
 - The configuration file does not override CLI-provided file paths. File paths come exclusively from the CLI invocation.
 
@@ -345,7 +345,7 @@ Division uses the larger absolute value. Use when acceptable variance scales wit
 ### Requirements
 
 - `tolerance_type` is **required** on every FUZZY column. There is no default. This forces an explicit, justified choice.
-- `tolerance` (the numeric value) is required on every FUZZY column.
+- `tolerance` (the numeric value) is required on every FUZZY column. The chosen value must be evidentiary — it must cite specific instances in the data or code that demonstrate the expected variance magnitude (e.g., "Tolerance 0.01 absolute: `OriginalCalc.cs:112` uses `ROUND_HALF_UP` while rewrite uses Spark SQL `ROUND()` which applies banker's rounding; maximum observed delta across Oct 2024 data is 0.005"). Tolerances chosen without evidence ("0.01 seems reasonable") are not acceptable.
 - There is no "percentage" type. Relative tolerance with `tolerance: 0.01` *is* 1%. A third label for the same math creates confusion for zero value-add.
 
 *(Decision 14, Design Session 002)*
@@ -409,7 +409,7 @@ Encoding detection and normalization for CSV files (which have no embedded encod
 
 **Optics management:** The algorithm name is not surfaced in report output. Reports show row hashes for mismatch identification. The algorithm that produced them is an implementation detail. If asked: "It is a comparison hash, not a security function."
 
-**Production:** The hash algorithm should be configurable. The vendor can offer SHA256 if it makes compliance requirements easier. It is slower for zero benefit in this use case, but the architecture does not care — hash is hash, swap the function, pipeline works the same.
+**Production:** The hash algorithm should be configurable. The vendor can offer SHA256 if it makes compliance requirements easier. It is slower for zero benefit in this use case, but it will be irrelevant to the business outcome — hash is hash, swap the function, pipeline works the same.
 
 *(Decision 16, Design Session 002)*
 
@@ -506,7 +506,7 @@ The CLI must accept the following inputs:
 - **Configuration path:** Path to the comparison target configuration file.
 - **LHS path:** Path to the LHS data. For CSV, this is a file path. For parquet, this is a directory path.
 - **RHS path:** Path to the RHS data. For CSV, this is a file path. For parquet, this is a directory path.
-- **Output path (optional):** Path where the JSON report should be written. The tool must be able to write its output to a specified file path.
+- **Output path (optional):** Path where the JSON report should be written. When omitted, the JSON report is written to standard output. The report format is identical regardless of destination.
 
 Reference invocation:
 ```
