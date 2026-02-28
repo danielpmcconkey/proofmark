@@ -9,17 +9,22 @@
 
 ## 1. Executive Summary
 
-Proofmark is a proof-of-concept output comparison and validation tool for ETL pipeline governance. It exists to answer a single question: when an AI agent rewrites an ETL job, does the rewritten job produce equivalent output to the original?
+Proofmark is a proof-of-concept output comparison and validation tool for ETL pipeline governance. It exists to answer a single question: when an AI agent rewrites an ETL job, does the rewritten job produce equivalent output to the original? 
+
+<!-- DAN: not "when an AI agent rewrites...". This is a COTS product from the perspective of the project. "when a technology team rewrites..." -->
 
 Proofmark is **not** the production tool. It is a functional specification and architectural proof of concept. The production comparison tool will be built by an independent systems integrator (Infosys, Accenture, or equivalent), using Proofmark as the spec. This achieves true organizational independence — different vendor, different team, different management chain — and eliminates the "one person built the whole thing" governance risk.
+
+<!-- DAN: similar comment to the one above. Let's make this BRD and build-out look like a legit product. Not a throw-away tool that some tech lead's using to prove a point. Ideally, my company could give this BRD to the vendor to build as-is. -->
 
 The name comes from proof marks on firearms: the stamp from an independent proof house certifying that a weapon has been pressure-tested. The proof house doesn't care who built the gun. It cares whether it passes.
 
 ### What Proofmark Proves
 
-1. **The comparison architecture works.** Format-agnostic engine, pluggable readers, three-tier threshold model, hash-sort-diff pipeline.
+1. **The comparison architecture works.** Format-agnostic engine, pluggable readers, three-tier threshold model, hash-sort-diff pipeline.<!-- DAN: I don't like the "comparison architecture works" bit. It's job is to prove like-for-like output within the constraints that are inherit to specific output formats. -->
 2. **The information isolation model is viable.** Builder agents never see Proofmark's internals, architecture, or authorship. As far as they know, it is a pre-existing COTS product evaluating their work.
 3. **The governance story holds up under scrutiny.** Deterministic comparison that mathematically cannot be gamed, producing self-contained evidence reports suitable for regulatory review.
+<!-- DAN: I don't know why we're saying all this. This info belongs in some meta document that later Claude strategists read. I want the Claudes that build Proofmark to think they're legit building the tool that a large bank will use to compare outputs from armies of human devs. -->
 
 ### Attestation Disclaimer
 
@@ -31,8 +36,8 @@ The name comes from proof marks on firearms: the stamp from an independent proof
 
 ### In Scope (POC)
 
-- **Delta Parquet comparison** — ADLS Delta Parquet part files. This pattern also covers off-platform database outputs (Oracle, SQL Server) and vanilla Salesforce, because those targets are driven by ADF loading a parquet file. The comparison target is the parquet file, not the downstream database or SFDC instance.
-- **CSV comparison** — Simple DataFrame-to-CSV dumps (approximately 76% of production output by volume) and CSV files with trailing control records (header rows, trailer rows with checksums or row counts).
+- **Delta Parquet comparison** — ADLS Delta Parquet part files. This pattern also covers off-platform database outputs (Oracle, SQL Server) and vanilla Salesforce, because those targets are driven by ADF loading a parquet file. The comparison target is the parquet file, not the downstream database or SFDC instance. <!-- DAN: this extra flavor makes it sound like bespoke. this needs to read like it's gonna be an Infosys prduct. We can have a separate document on why Proofmark is a great fit for our project and how we should deploy it for our use cases -->
+- **CSV comparison** — Simple DataFrame-to-CSV dumps (approximately 76% of production output by volume) and CSV files with trailing control records (header rows, trailer rows with checksums or row counts). <!-- DAN: move the parenthetical 76% bit to that "how it fits" document I describe just above -->
 - **Three-tier column classification** — Per-target configuration of excluded, exact match, and tolerance columns.
 - **Hash-sort-diff pipeline** — Order-independent comparison via row hashing, sorting by hash, and sequential diff.
 - **JSON comparison reports** — One report per comparison target, machine-parseable and human-readable.
@@ -41,16 +46,16 @@ The name comes from proof marks on firearms: the stamp from an independent proof
 
 ### Out of Scope (POC)
 
-- **Database validation** — PostgreSQL, Oracle, SQL Server, Synapse. Trivial to implement but significant setup work. No value-add to the CIO presentation. DB-out jobs write parquet first anyway; the comparison target is the parquet file. *(Revisit for production pilot.)*
-- **Synapse validation** — Supposed to mirror ADLS Delta 1:1. That rule has been broken approximately 100 times. Ignored during cloud migration. *(Revisit after ADLS Delta comparison is battle-tested.)*
-- **Salesforce** — Vanilla SFDC resolves to parquet comparison. Custom SFDC ADF pipelines are application integration, not ETL. Custom SFDC is permanently out of scope.
-- **Exotic MFT formats** — XML, JSON, EBCDIC, zipped/binary outputs. Approximately 4% of the total job estate. The architecture supports them via pluggable readers, but they are not implemented for the POC. *(Revisit after CSV and parquet readers are solid.)*
+- **Database validation** — PostgreSQL, Oracle, SQL Server, Synapse. Trivial to implement but significant setup work. No value-add to the CIO presentation. DB-out jobs write parquet first anyway; the comparison target is the parquet file. *(Revisit for production pilot.)* <!-- DAN: change the tone to be more like planning an MVP for a COTS product; not what "Dan" wants in a POC -->
+- **Synapse validation** — Supposed to mirror ADLS Delta 1:1. That rule has been broken approximately 100 times. Ignored during cloud migration. *(Revisit after ADLS Delta comparison is battle-tested.)* <!-- DAN: good to call it out of scope. Move the comments to the "does it fit what we're doing" doc  -->
+- **Salesforce** — Vanilla SFDC resolves to parquet comparison. Custom SFDC ADF pipelines are application integration, not ETL. Custom SFDC is permanently out of scope. <!-- DAN: same comment as the database validation -->
+- **Exotic MFT formats** — XML, JSON, EBCDIC, zipped/binary outputs. Approximately 4% of the total job estate. The architecture supports them via pluggable readers, but they are not implemented for the POC. *(Revisit after CSV and parquet readers are solid.)* <!-- DAN: move the commentary to the "does it fit" doc. Leave the "architecture supports them via pluggable readers" part but cite it as a note for future versions past the MVP -->
 - **Evidence package assembly** — Proofmark produces a comparison report. Assembly of that report into a governance evidence package is a QA process concern, not a tool concern (see Section 12).
 - **Batch mode / orchestration** — Running multiple comparison targets in sequence or parallel is orchestration. Proofmark compares one target at a time.
-- **PII/PCI stripping from reports** — Production requirement. The POC runs on synthetic data (see Section 16).
+- **PII/PCI stripping from reports** — Production requirement. The POC runs on synthetic data (see Section 16). <!-- DAN: change the "POC runs on" part to say something like "The MVP will assume that the users who view its outputs have the appropriate entitlements with respect to source data fed into Proofmark, that all data is appropriately classified, and that all privacy agreements are in place" -->
 
 ### POC vs. Production Distinction
-
+<!-- DAN: change POC to MVP. I know it doesn't fit the content perfectly, but I at least wanna pretend we're designing a COTS product here -->
 | Capability | POC (Proofmark) | Production (Vendor Build) |
 |---|---|---|
 | Comparison engine | Working | Same architecture, enterprise-grade |
@@ -69,24 +74,27 @@ The name comes from proof marks on firearms: the stamp from an independent proof
 ### 3.1 Comparison Target
 
 The unit of work in Proofmark is a **comparison target**, not a "job."
-
 In the real platform, an OFW trigger can be a single job with one output, a box job producing many outputs in sequence, a job with date-maker logic queuing sequential runs, a job with sub-tasks handing off between ADB and ADF, or a job registered in a federated ETL jobs table across multiple curated zones. There is no clean 1:1 mapping between "OFW job" and "thing to compare."
+<!-- DAN: this sounds too bespoke. Move most of it to the why it's a good fit doc. It's good to define the unit of work as an output, but do it in a generic enterprise ETL platform way -->
 
 Proofmark does not know what a job is. A comparison target is:
 
-- A pair of data sources (original output + rewritten output)
+- A pair of data sources (original output + rewritten output) <!-- DAN: I want to adopt left / right terminology . Think of this like an enterprise reconciliation platform (Intellimatch). Those terms are used extensively in reconcilation. Left = original job's output. Right = what we're actually validating. -->
 - A column configuration (tier 1/2/3 classification)
 - A reader type and reader-specific configuration
 
-The mapping from "OFW job" to "comparison targets" is the responsibility of whoever configures Proofmark — the QA agent or human operator. One job might produce five comparison targets. A chain of jobs might result in one comparison target at the end. Proofmark does not care.
+The mapping from "OFW job" to "comparison targets" is the responsibility of whoever configures Proofmark — the QA agent or human operator. One job might produce five comparison targets. A chain of jobs might result in one comparison target at the end. Proofmark does not care. 
+<!-- DAN: change OFW to something like IT Task Management. What do we call things like Autosys and Airflow? -->
 
 **The Accenture test:** If you couldn't sell this tool to another bank running a completely different orchestration framework, you built it wrong. Proofmark knows about files and tabular data. It does NOT know about OFW, ADF, Databricks, Autosys, Oozie, box jobs, date maker, curated zone federation, or any platform-specific concept.
+<!-- DAN: don't call it Accenture test. Come up with a phrase that evokes TCS, Cognizant, Accenture, Infosys without naming them or calling out "offshore" -->
 
 *(Decision 1, Design Session 002)*
 
 ### 3.2 No Relationships Between Targets
 
 Proofmark does not model dependencies between comparison targets. It does not know that "target C is the final output of a chain that includes intermediary targets A and B." Grouping targets into validation runs, linking them to jobs, or mapping dependency chains is external context managed by the agent workflow or human process.
+<!-- DAN: that was a great call out. -->
 
 Proofmark compares individual targets and produces individual reports.
 
@@ -95,9 +103,10 @@ Proofmark compares individual targets and produces individual reports.
 ### 3.3 File vs. File Comparison
 
 The real platform produces files — parquet files in ADLS and CSV files through TIBCO/ADF. Proofmark compares files to files. There is no database in the comparison loop.
+<!-- DAN: I don't want the "real platform" reference. this bit belongs in the is it a good fit doc. not the brd you hand to a dev team -->
 
-- Original job produces a file (parquet or CSV)
-- Rewritten job produces a file (parquet or CSV)
+- Original job produces a file (parquet or CSV) <!-- DAN: left -->
+- Rewritten job produces a file (parquet or CSV) <!-- DAN: right -->
 - Proofmark reads both files, compares, reports
 
 *(Decision 3, Design Session 002)*
@@ -113,7 +122,7 @@ Session 001 identified three comparison types: parquet, simple CSV, and CSV with
 
 **CSV reader:**
 - Input: file path
-- Configuration: number of header rows to skip (compared as literal strings, in order), number of trailer rows to skip (compared as literal strings, in order)
+- Configuration: number of header rows to skip (compared as literal strings, in order), number of trailer rows to skip (compared as literal strings, in order) <!-- DAN: to be clear, we're not skipping those rows. We're preserving their order in the file to ensure they're actually where they belong. but we still hash and compare those rows -->
 - Everything between header and trailer is data and goes through the hash-sort-diff pipeline
 - Header and trailer rows are compared as exact literal string matches, in order
 
@@ -127,7 +136,7 @@ Delta Parquet outputs are spread across multiple part files. The number of part 
 
 The parquet reader reads all part files in a directory, assembles them into one logical table, and proceeds to comparison. Row ordering across parts is meaningless. Comparison is order-independent.
 
-**Critical POC demo point:** The same output spread across 3 part files must compare correctly against the same output optimized into 1 part file.
+**Critical POC demo point:** The same output spread across 3 part files must compare correctly against the same output optimized into 1 part file. <!-- DAN: I think the Critical POC part is meta info that belongs elsewhere -->
 
 *(Decision 4, Design Session 002)*
 
@@ -141,21 +150,33 @@ The pipeline executes in the following order for each comparison target:
 
 Read both sources using the configured reader. For parquet, this means reading a directory of part files and assembling into one logical table. For CSV, this means reading the file, separating header/trailer rows from data rows per configuration.
 
+<!-- DAN: The first step should be to understand the config to know how to load. yes, you call that out as first step of load, but reading the config will inform many processes. Not just load. I'm not saying this is wrong. My addition maybe should be an architecture / FSD. It warrants discussion, IMO. -->
+
 ### Step 2: Exclude
 
-Drop all tier 1 (excluded) columns. These columns do not exist from this point forward. They are not hashed, not compared, not present in downstream steps.
+Drop all tier 1 (excluded) columns. These columns do not exist from this point forward. They are not hashed, not compared, not present in downstream steps. <!-- DAN: have we defined our column tiers yet? If not, that should happen before referencing them -->
 
 **Why exclusion happens before hashing:** If a tier 1 column (e.g., a UUID) differs between original and rewrite, hashing it would produce completely different hash values, which would produce completely different sort orders, which would make sequential comparison impossible. Exclude first, hash what remains.
 
 ### Step 3: Hash
 
 Hash each remaining row (all non-excluded columns) to produce a single hash value per row. The hash captures the complete content of tier 2 and tier 3 columns for that row.
+<!-- DAN: just thinking out loud. But is this a business requirement or an implementation decision? I don't feel strongly enough. We all know that the row will be hashed in either case. And we do reference later versions having selectable hashing algorhythms. So I'm probably wasting tokens here -->
 
 ### Step 4: Sort
 
 Sort both datasets by hash value. This produces deterministic ordering regardless of physical file layout, original row order, or part file distribution. No sort key configuration required.
 
 **Why hash-sort instead of sort keys:** The real platform does not have reliable sort keys. During cloud migration, the team hashed entire rows and sorted by hash. This eliminates sort key configuration, null sort edge cases, and composite key debates.
+
+<!-- DAN: we're missing teh part about excluding header and footer rows from the re-shuffling -->
+<!-- DAN: between sort and diff, I think we've missed a major requirement. The reader of the report will need to be able to know which rows didn't match. Imagine this scenario:
+   - left hand side (LHS) has a row in line 17 that is "123|Big|Bird|Yellow"
+   - right hand side (RHS) has a row in line 48 that is "123|Big|Burd|Yellow"
+   - I'm not gonna actually hash those, but the MD5 result of those two will be wildly differerent 
+   - So the hashed comparison diff will simple see it as the LHS has a row that isn't present in the RHS and the RHS has a row that isn't present in the LHS
+
+It's fine that we don't show them as "the same row but different". But the human reader of the report needs to be able to figure that out by seeing the actual original data un-hashed. So my thought is that we create the LHS as a dataframe of one column that is all columns concatenated into a string (including the delimeter), one column that is a hash of that first column. Do the same for the RHS. Sort both on the hashed column. Compare. Report the unhashed version in the diff. -->
 
 ### Step 5: Diff
 
@@ -176,11 +197,14 @@ All mismatches are reported regardless of pass/fail. The threshold determines th
 
 ## 5. Column Classification
 
+<!-- DAN: overall comment. I think our tiering is backwards. 1 should be exact match. 2 should be "fuzzy". 3 should be ignore. I'll use your numbers in my comments here so I don't confuse. But you want your most important fields to be #1. It's a human thing. We're weird like that. EDIT. After reflecting on it, keep it as-is for this version. I don't wanna risk you missing a change in just one place and suddenly we're exculing things that need to be exact matches. EDIT 2. No, I take that back. I wanna get rid of the 1, 2, 3 designation outright. These should never be numbers. We can make them enums in the code, but they should be meaningful labels, not magic numbers. STRICT, FUZZY, EXCLUDED  -->
+
 Proofmark uses a three-tier column classification model. Every column in a comparison target belongs to exactly one tier.
 
 ### Tier 1: Excluded
 
 Known non-deterministic columns — UUIDs, timestamps, sequence IDs, runtime-assigned identifiers. These columns are dropped before hashing and are not compared.
+<!-- DAN: for the meta "why does this tool fit our need" document. It is important to call out that first pass after rewrite may not notice that a column should be tier 1 or 3. Unless the analyst agent explicitly recognize up front that a column belongs in something other than tier 2, we'll be iterating and will eventually come to that conclusion. Config needs to be changeable with that in mind -->
 
 **Requirement:** Every tier 1 exclusion must include a documented justification in the configuration. The justification flows into the comparison report and the evidence package. "We excluded it because it didn't match" is not a justification.
 
@@ -196,6 +220,10 @@ Columns with expected minor variance — floating point rounding, precision diff
 
 **Requirement:** Every tier 3 classification must include a documented justification and an explicit tolerance value and type. "Floating point is weird" is not a justification. "Rounding variance between Spark and ADF engines, tolerance +-0.01 absolute" is.
 
+<!-- DAN: if we're using a hash, how would we arrive at tolerance. do we cast / round those fields? That won't work. You can round 4.0051 and 4.0049 to 3 significant digits and get very different results, even though they're only 0.0002 apart. This needs discussion, BD -->
+<!-- DAN: comment for the meta exercise, not this BRD. this might be a bridge too far. But I'm wondering about ways to intentionally trip this up a good example we had from our on-prem to cloud migration was timezones. our servers ran in UTC. On prem ran in UTC -5. We had oodles of fun with that one. Many ETL jobs truncated full date/time/timezone stamps down to date-only and when jobs run on opposite sides of midnight, that caused interesting results. And floating point math *is* weird. We need to intentionally introduce it. Same with the CSV library differences. I wanna test this process in the meta  -->
+
+
 ### Default-Strict Philosophy
 
 If no column configuration is provided for a comparison target, every column is tier 2 (exact match). This is the strictest possible default.
@@ -209,6 +237,7 @@ The QA agent's or operator's job is to carve out exceptions and justify each one
 ## 6. Configuration
 
 ### Format: YAML
+<!-- DAN: is this a business requirement or an implimentation detail? -->
 
 YAML supports inline comments (natural place for justifications), is less noisy than JSON, is human-editable, and has native Python support. QA agents can generate YAML programmatically as easily as JSON.
 
@@ -268,6 +297,8 @@ columns:
 
 Tier 3 columns support two tolerance modes, configurable per column. There are no hardwired defaults on tolerance type — the person configuring it makes a conscious choice and justifies it.
 
+<!-- DAN: as a meta for the overall POC3 project, we need to ensure we're capturing that justification and that it is clearly founded in evidence. -->
+
 ### Absolute Tolerance
 
 Match condition: `|a - b| <= tolerance`
@@ -301,6 +332,8 @@ Division uses the larger absolute value. Use when acceptable variance scales wit
 
 Non-issue. Parquet has a typed schema with native null support. Null is null — not empty string, not the literal text `"NULL"`. The format enforces this. Two nulls match. Null vs. empty string is a mismatch, correctly, because the schema says they are different things.
 
+<!-- DAN: meta to Claude. How will we actually do this? We're saying "don't worry about it" because parquet inforces its schema. In the real platform, we can make that assumption. In our POC, does that hold water? Parquet is really just a text file. And we're not building anything like delta lake or hive here.  -->
+
 ### CSV
 
 The wild west of null representation:
@@ -311,6 +344,8 @@ The wild west of null representation:
 - Whitespace: `, ,`
 
 Every upstream system has its own opinion. If the original wrote `NULL` and the rewrite writes an empty field, that is a **legitimate mismatch**. Downstream systems with brittle parsers treat these differently. Real consequences.
+
+<!-- DAN: this needs to be worded stronger. This isn't javascript where ("two" == 2) returns true. Make no attempt at null equivalence. Make that sound smarter Claude. I don't actually know the right way to phrase it, but this needs a point of emphasis, IMO. Edit. Okay, looks like you added the emphasis down below. But still think on this a bit. make sure we're putting in the right guard rails -->
 
 ### The Rule
 
@@ -330,13 +365,14 @@ No special treatment. Nulls (however represented) are bytes in the row. They has
 
 ### The Real-World Context
 
-During cloud migration, encoding and line break mismatches were showstoppers at the start. By the end, the consensus was "fix your downstream ingestion process to be less brittle." Proofmark needs to support both stances.
+During cloud migration, encoding and line break mismatches were showstoppers at the start. By the end, the consensus was "fix your downstream ingestion process to be less brittle." Proofmark needs to support both stances. <!-- DAN: move that commentary to the "does it fit" file. Make this a generic statement about different line breaks and encoding being mother fuckers.  -->
 
 ### Configuration
 
 Per comparison target:
 
 - **Line breaks:** `strict` (CRLF and LF must match exactly) or `normalize` (treat all line break styles as equivalent)
+<!-- DAN: I mention this above, but how do you compare the line break if you're using that line break to delimit your rows from one another? You'll strip out your breaks by definition before you ever get to the comparin'. There needs to be something in here that evaluates for line break consistency before ever trying to compare the rows. We can continue the hash and compare so that the reviewer knows all the failures they need to deal with. But a line break mismatch should flunk the entire file. no ifs, ands, or buts. I don't think this applies to parquet, but double check that, please.  -->
 - **Encoding:** `strict` (byte-level must match) or `normalize` (decode both to a common encoding, compare characters)
 
 ### Defaults
@@ -345,13 +381,15 @@ Both default to `strict`. Relaxation requires documented justification. Early in
 
 The evidence package reflects the setting: "compared with strict encoding" or "normalized line endings per approved exception [reference]."
 
+<!-- DAN: I don't want to approve normalised line endings as an exception. There should never be a reason we can't write the proper line endings. If our Mock ETL FW can't support "standard" line ending formats, let's fix it to do just that. and for MVP, we can assume standard windows vs *nix. nothing exotic needed here. -->
+
 *(Decision 8, Design Session 002)*
 
 ---
 
 ## 10. Hash Algorithm
 
-**POC:** MD5. It is fast, universally available, and produces excellent distribution for row comparison and sorting. Collision risk is irrelevant — this is a comparison hash, not a security function. Nobody is crafting adversarial ETL outputs.
+**POC:** MD5. It is fast, universally available, and produces excellent distribution for row comparison and sorting. Collision risk is irrelevant — this is a comparison hash, not a security function. Nobody is crafting adversarial ETL outputs. <!-- DAN: MVP, not POC -->
 
 **Optics management:** The algorithm name is not surfaced in report output. Reports show row hashes for mismatch identification. The algorithm that produced them is an implementation detail. If asked: "It's a comparison hash, not a security function."
 
@@ -391,7 +429,7 @@ JSON. One report per comparison target. JSON serves two audiences: the QA agent 
 - Threshold used
 
 **Mismatches:**
-- Every mismatch, regardless of pass/fail: row hash, column name, value A, value B, tier
+- Every mismatch, regardless of pass/fail: row hash, column name, value A, value B, tier <!-- DAN: see my note above about how to display value A and value B. Will we even be able to "knit" it together like this? As far as the comparison, the hashes will be wildly different. I'm way good if you think it'll be easy to then look at each of the rows that didn't appear on the other side and try to fuzzy logic your way to "we think these were supposed to be the same row". As a meta on the POC, we're gonna have to build that intelligence into something. Is that in Proofmark or is that in your QA agents? I'd love it to get into proofmark as a deterministic algorhythm but need advice on the practicality. -->
 - For tier 3 mismatches: tolerance, tolerance type, and actual delta
 
 ### What Is Not in the Report
@@ -415,6 +453,8 @@ This is vendor-build territory. The POC includes full values because it runs on 
 
 *(Decision 10, Design Session 002)*
 
+<!-- DAN: that whole constraint is not needed here. We have it in the out of scope. See my comments on that. Your commentary is useful to the POC3 project but don't belong here. Move them to the "is this a good fit" md -->
+
 ---
 
 ## 12. CLI Interface
@@ -425,13 +465,21 @@ This is vendor-build territory. The POC includes full values because it runs on 
 proofmark compare --config path/to/target.yaml
 ```
 
+<!-- DAN: this is definitely implementation. BRD should call out that CLI is acceptable and that the executor of that CLI operation needs to be able to provide X, Y, and Z inputs  -->
+
+<!-- DAN: don't we need it to take in config path, LHS output path, RHS output path . We should also specify that, for CSV output, this needs to be a path to a single file while, for parquet, it needs to be a directory. I think, I haven't actually bothered to truly understand parquet under the hood. -->
+
 One config, one comparison, one report. The config file is the single source of truth.
+
+<!-- DAN: I disagree and it may highlight a lack of refinement in our discussions. Config should be re-usable. A job creates an output (or many or none, but let's not get mired down in that). That output is an output target that should be matched day over day. We compare LHS tuesday to RHS tuesday. Then LHS wednesday to LHS wednesday. Same config, different file sets. Because, if the config changes day over day, that tells us nothing. We need the EXACT same rigour applied to tuesday as to wednesday, IMO -->
 
 ### Output
 
 JSON report to stdout by default. `--output path/to/report.json` to write to file.
 
 Stdout is ideal for agent workflows — pipe it, parse it, move on. File output is for evidence packaging.
+
+<!-- DAN: stdout is implementation. the BRD sohuld say that we need to be able to specify an output path when we execute the CLI -->
 
 ### Exit Codes
 
@@ -440,6 +488,8 @@ Stdout is ideal for agent workflows — pipe it, parse it, move on. File output 
 | `0` | Comparison ran, PASS |
 | `1` | Comparison ran, FAIL |
 | `2` | Error (bad config, file not found, parse failure) |
+
+<!-- DAN: note to future us. the FSD should define discrete error codes. (not exit codes. error codes that would be referenced by the users triaging problems -->
 
 Exit codes allow the QA agent to script pass/fail decisions without parsing the report.
 
@@ -456,6 +506,7 @@ Exit codes allow the QA agent to script pass/fail decisions without parsing the 
 
 ## 13. Evidence Package
 
+<!-- DAN: this entire Evidence Package section needs to be moved out of the BRD . it's great commentary on the POC3 project, but not something I'd hand to Tata and say "build this". I believe you've alraedy marked it as out of scope. If not, make sure you do and that's all the BRD needs. -->
 Proofmark produces a comparison report. That report is one *input* to a governance evidence package. Assembly of the evidence package is a QA process concern — human or agent — not a tool concern.
 
 ### Evidence Package Contents (External to Proofmark)
@@ -483,9 +534,13 @@ Define what an evidence package looks like conceptually (markdown template or di
 
 ## 14. Test Data Strategy
 
+<!-- DAN: section 14 also belongs outside the BRD. Good stuff, just not for this document. -->
+
 ### The Problem
 
 If the MockEtlFramework produces both "original" and "rewritten" outputs using the same libraries, floating point behavior, timestamp formatting, and rounding are identical on both sides. Tier 3 tolerance logic never gets exercised against real variance. The demo would show a feature that was never actually stress-tested.
+
+<!-- DAN: a comment on this specific call out. For our prototype in the actual bank, we'll still be using the same ETL FW to write outputs. The distinction is that some teams employ different tooling in their external modules via python imports. Our re-writes are going to try to eliminate custom module usage (where practical) and replace that flow with standard modules. That's how this problem will manifest for us in the real world execution of this re-write through Claude. I think that's one place where it'll be advisable for us to stop and ask ourselves if maybe we shouldn't edit the ETL FW to make it more versatile for handling these types of differences.   -->
 
 ### The Decision
 
@@ -527,6 +582,7 @@ The comparison target configuration will eventually need to specify CSV dialect 
 
 ## 16. SDLC Flow
 
+<!-- DAN: this also wouldn't be in a real-world BRD. In a real world dev shop, you'd have program governance documents that all teams adhere to that spell this out. Okay to leave here, though, because we don't have a program team -->
 The agreed development flow from business requirements through code:
 
 | Step | Artifact | Description |
@@ -553,7 +609,7 @@ The agreed development flow from business requirements through code:
 
 ## 17. Out of Scope
 
-### Out of Scope for POC
+### Out of Scope for POC <!-- DAN: MVP -->
 
 | Item | Rationale | Revisit When |
 |------|-----------|--------------|
@@ -568,9 +624,13 @@ The agreed development flow from business requirements through code:
 
 - **Custom Salesforce ADF pipeline** — Application integration, not ETL. Not Proofmark's problem. Recommendation: tell the CIO it is out of scope entirely.
 
+<!-- DAN: move the custom sf commentary out of the BRD. Good to call out when we're planning on moving out past the prototype. Also soften the "tell the CIO" language. Make it more like "ensure program stakeholders are aware that those workflows are out of scope due to the overwhelming complexity of the custom integration logic"  -->
+
 ---
 
 ## 18. Production Considerations
+
+<!-- DAN: for the entirety of section 18, change POC to MVP. Otherwise good but probably redundant to statements already made -->
 
 The following items are explicitly documented as vendor-build requirements. They are not solved by the POC but must be addressed by the production tool.
 
@@ -630,6 +690,8 @@ Every requirement in this BRD traces to a specific decision in the design sessio
 | 16. SDLC Flow | Decision 18 | 002 |
 | 17. Out of Scope | — | 001 + out-of-scope.md |
 | 18. Production Considerations | Decisions 9, 10, 12, 16 | 002 |
+
+<!-- DAN: are these design sessions written out somewhere? if not, they should be formalized so readers of this doc can reference them -->
 
 Foundational architecture (format-agnostic engine, pluggable readers, three-tier threshold model, information isolation model, SDLC approach) originates from Design Session 001 (2026-02-27). All 18 numbered decisions originate from Design Session 002 (2026-02-28).
 
