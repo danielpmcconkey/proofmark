@@ -692,7 +692,7 @@ def check_fuzzy(
     Returns FuzzyFailure if tolerance exceeded (fail).
 
     Raises:
-        ValueError: If values cannot be converted to float.
+        ConfigError: If values cannot be converted to float (ValueError caught internally).
     """
 ```
 
@@ -1122,9 +1122,9 @@ This is the complete JSON structure that `report.py` produces. Every field maps 
   "summary": {
     "row_count_lhs": 5000,
     "row_count_rhs": 5001,
-    "match_count": 5000,
-    "mismatch_count": 1,
-    "match_percentage": 99.99,
+    "match_count": 4999,
+    "mismatch_count": 2,
+    "match_percentage": 99.97,
     "result": "PASS",
     "threshold": 99.5,
     "line_break_mismatch": false,
@@ -1171,8 +1171,17 @@ This is the complete JSON structure that `report.py` produces. Every field maps 
         "lhs_count": 1,
         "rhs_count": 1,
         "status": "MATCH",
-        "matched_count": 1,
-        "surplus_rows": [],
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "1002|100.005|active"
+          },
+          {
+            "side": "rhs",
+            "content": "1002|100.05|active"
+          }
+        ],
         "fuzzy_failures": [
           {
             "column": "interest_accrued",
@@ -1366,7 +1375,7 @@ Each test file maps to one or more feature areas from the Test Architecture v2. 
 
 ## Appendix B: FSD Tag Index
 
-Total FSD tags: 117
+Total FSD tags: 167
 
 | Range | Section | Count |
 |-------|---------|-------|
