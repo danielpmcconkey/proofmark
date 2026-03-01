@@ -7,13 +7,13 @@ for ETL pipeline governance. Built through traditional SDLC. Python. pytest for 
 **Proofmark is a POC tool, not the production tool.** The production comparison tool
 will be built by an independent systems integrator (Infosys/Accenture/equivalent).
 Proofmark serves as the functional specification and proof of architecture.
-See `Documentation/scope-and-intent.md` for the full rationale.
+For the full rationale, see the AtcStrategy repo: `AtcStrategy/POC3/scope-and-intent.md`.
 
 ## Prime Directive: The TAR Register
 
 **Every decision, every design choice, every implementation task must be checked
 against the TAR register at:**
-`/workspace/ai-dev-playbook/Projects/ATC/adversarial-review/06-program-tar-register.md`
+`/workspace/AtcStrategy/AdversarialReviews/06-program-tar-register.md`
 
 This is the governing document for the POC. It contains:
 - The weekend POC tasks and priorities
@@ -29,11 +29,10 @@ This is the governing document for the POC. It contains:
 
 ## Session Startup
 1. Read the TAR register (prime directive above).
-2. Read `Documentation/scope-and-intent.md` — Proofmark's actual scope and the vendor build strategy.
-3. Read `Documentation/design-sessions/001-initial-design-2026-02-27.md` — foundational design conversation.
-4. Check for newer design session files in `Documentation/design-sessions/` — they're numbered sequentially.
-5. Check `Documentation/BusinessRequirements/out-of-scope.md` so you don't waste time on punted items.
-6. Ask Dan what we're working on today.
+2. Read `Documentation/BusinessRequirements/BRD-v3-approved.md` — the approved BRD.
+3. Read `Documentation/Design/FSD-v1.md` — the functional spec.
+4. Read `Documentation/QualityAssurance/test-architecture.md` — test strategy.
+5. Ask Dan what we're working on today.
 
 ## Rules
 - **TDD/BDD.** Test cases BEFORE implementation. Dan reviews every test case.
