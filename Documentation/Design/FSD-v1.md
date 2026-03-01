@@ -1035,6 +1035,8 @@ Not configurable. Always present.
 
 **FSD-6.10:** Detection method: read file as raw bytes. Presence of `\r\n` → `"CRLF"`. Otherwise → `"LF"`.
 
+> **Vendor build note (FSD-6.10):** This detection is binary — it does not detect *mixed* line breaks within a single file (e.g., a file that is predominantly CRLF with one or more LF-only lines). A file manually edited in a tool like Excel can introduce mixed line breaks that this check will not catch. The vendor build should detect mixed line breaks as a distinct state and flag them accordingly.
+
 **FSD-6.11 [BR-4.2, BR-11.25]:** On mismatch: set `line_break_mismatch = True`. This contributes to FAIL.
 
 **FSD-6.12 [BR-4.4, BR-4.5]:** Continue regardless: the full comparison runs. Report includes both the match rate AND the line break mismatch flag.

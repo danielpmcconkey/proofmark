@@ -1,0 +1,78 @@
+{
+  "metadata": {
+    "timestamp": "2026-03-01T11:07:29Z",
+    "proofmark_version": "0.1.0",
+    "comparison_target": "009_should_pass_fuzzy",
+    "config_path": "tests/fixtures/dan_manual_test/009_should_pass_fuzzy.yaml"
+  },
+  "config": {
+    "comparison_target": "009_should_pass_fuzzy",
+    "reader": "csv",
+    "csv": {
+      "header_rows": 1,
+      "trailer_rows": 0
+    },
+    "columns": {
+      "fuzzy": [
+        {
+          "name": "weirdness_coefficient",
+          "tolerance": 0.0001,
+          "tolerance_type": "absolute",
+          "reason": "Floating point precision variance from aggregation across different execution engines"
+        }
+      ]
+    }
+  },
+  "column_classifications": [
+    {
+      "name": "merchant_category_code",
+      "classification": "STRICT",
+      "reason": null,
+      "tolerance": null,
+      "tolerance_type": null
+    },
+    {
+      "name": "as_of",
+      "classification": "STRICT",
+      "reason": null,
+      "tolerance": null,
+      "tolerance_type": null
+    },
+    {
+      "name": "weirdness_coefficient",
+      "classification": "FUZZY",
+      "reason": "Floating point precision variance from aggregation across different execution engines",
+      "tolerance": 0.0001,
+      "tolerance_type": "absolute"
+    }
+  ],
+  "summary": {
+    "row_count_lhs": 17,
+    "row_count_rhs": 17,
+    "match_count": 17,
+    "mismatch_count": 0,
+    "match_percentage": 100.0,
+    "result": "PASS",
+    "threshold": 100.0,
+    "line_break_mismatch": false
+  },
+  "header_comparison": [
+    {
+      "position": 0,
+      "lhs": "\"merchant_category_code\",\"as_of\",\"weirdness_coefficient\"",
+      "rhs": "\"merchant_category_code\",\"as_of\",\"weirdness_coefficient\"",
+      "match": true
+    }
+  ],
+  "trailer_comparison": [],
+  "mismatches": {
+    "schema_mismatches": null,
+    "hash_groups": [],
+    "correlation": {
+      "correlated_pairs": [],
+      "uncorrelated_lhs": [],
+      "uncorrelated_rhs": []
+    }
+  },
+  "attestation": "Output equivalence certifies equivalence to the original, NOT correctness in an absolute sense. If the original has a bug and the rewrite faithfully reproduces it, Proofmark reports PASS."
+}

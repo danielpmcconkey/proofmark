@@ -1,0 +1,2 @@
+comparison_target: 022_should_pass_multipart
+reader: parquet

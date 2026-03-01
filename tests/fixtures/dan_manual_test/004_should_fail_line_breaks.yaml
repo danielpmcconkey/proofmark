@@ -1,0 +1,5 @@
+comparison_target: 004_should_fail_line_breaks
+reader: csv
+csv:
+  header_rows: 1
+  trailer_rows: 0

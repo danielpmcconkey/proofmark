@@ -1,0 +1,5 @@
+comparison_target: 005_should_fail_sneaky_line_break
+reader: csv
+csv:
+  header_rows: 1
+  trailer_rows: 0

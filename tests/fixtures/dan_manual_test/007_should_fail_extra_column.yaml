@@ -1,0 +1,5 @@
+comparison_target: 007_should_fail_extra_column
+reader: csv
+csv:
+  header_rows: 1
+  trailer_rows: 0

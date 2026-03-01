@@ -1,0 +1,8 @@
+comparison_target: 021_should_pass_float_fuzzy
+reader: parquet
+columns:
+  fuzzy:
+  - name: amount
+    tolerance: 0.0001
+    tolerance_type: absolute
+    reason: Floating point precision variance from different computation engines

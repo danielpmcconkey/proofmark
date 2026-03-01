@@ -1,0 +1,3424 @@
+{
+  "metadata": {
+    "timestamp": "2026-03-01T10:42:28Z",
+    "proofmark_version": "0.1.0",
+    "comparison_target": "003_should_fail_bad_mcc",
+    "config_path": "tests/fixtures/dan_manual_test/003_should_fail_bad_mcc.yaml"
+  },
+  "config": {
+    "comparison_target": "003_should_fail_bad_mcc",
+    "reader": "csv",
+    "csv": {
+      "header_rows": 1,
+      "trailer_rows": 0
+    }
+  },
+  "column_classifications": [
+    {
+      "name": "card_txn_id",
+      "classification": "STRICT",
+      "reason": null,
+      "tolerance": null,
+      "tolerance_type": null
+    },
+    {
+      "name": "card_id",
+      "classification": "STRICT",
+      "reason": null,
+      "tolerance": null,
+      "tolerance_type": null
+    },
+    {
+      "name": "customer_id",
+      "classification": "STRICT",
+      "reason": null,
+      "tolerance": null,
+      "tolerance_type": null
+    },
+    {
+      "name": "merchant_name",
+      "classification": "STRICT",
+      "reason": null,
+      "tolerance": null,
+      "tolerance_type": null
+    },
+    {
+      "name": "merchant_category_code",
+      "classification": "STRICT",
+      "reason": null,
+      "tolerance": null,
+      "tolerance_type": null
+    },
+    {
+      "name": "amount",
+      "classification": "STRICT",
+      "reason": null,
+      "tolerance": null,
+      "tolerance_type": null
+    },
+    {
+      "name": "txn_timestamp",
+      "classification": "STRICT",
+      "reason": null,
+      "tolerance": null,
+      "tolerance_type": null
+    },
+    {
+      "name": "authorization_status",
+      "classification": "STRICT",
+      "reason": null,
+      "tolerance": null,
+      "tolerance_type": null
+    },
+    {
+      "name": "as_of",
+      "classification": "STRICT",
+      "reason": null,
+      "tolerance": null,
+      "tolerance_type": null
+    }
+  ],
+  "summary": {
+    "row_count_lhs": 1656,
+    "row_count_rhs": 1656,
+    "match_count": 1564,
+    "mismatch_count": 92,
+    "match_percentage": 94.44444444444444,
+    "result": "FAIL",
+    "threshold": 100.0,
+    "line_break_mismatch": false
+  },
+  "header_comparison": [
+    {
+      "position": 0,
+      "lhs": "\"card_txn_id\",\"card_id\",\"customer_id\",\"merchant_name\",\"merchant_category_code\",\"amount\",\"txn_timestamp\",\"authorization_status\",\"as_of\"",
+      "rhs": "\"card_txn_id\",\"card_id\",\"customer_id\",\"merchant_name\",\"merchant_category_code\",\"amount\",\"txn_timestamp\",\"authorization_status\",\"as_of\"",
+      "match": true
+    }
+  ],
+  "trailer_comparison": [],
+  "mismatches": {
+    "schema_mismatches": null,
+    "hash_groups": [
+      {
+        "hash_value": "067f7b4a5fb18c7120af03ae2f89c0b9",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "66524|11360|3160|Hilton Garden Inn|7011|445.37|2024-11-12 22:11:02|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "088ba8851f5b514c50f355be5bd066c6",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "66229|9430|1230|Marriott Hotels|7011|259.70|2024-11-12 12:36:28|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "093881a67cda25c836272ad281c6d079",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "65510|8023|2023|Hilton Garden Inn|7011_|251.28|2024-11-12 09:59:35|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "0b6cda814cf48692df61389226102c0a",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "65770|8463|2463|Hilton Garden Inn|7011|359.31|2024-11-12 08:28:38|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "0c4a7aa1323d537ce1cfbc07b93096f3",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "65895|8659|2659|Marriott Hotels|7011_|272.10|2024-11-12 08:55:52|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "0ce4be10d87a11f2dfef56d65f6f8d7a",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "65995|8844|2844|Hilton Garden Inn|7011_|258.73|2024-11-12 07:37:02|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "10143e508d2d022566a9f463dabcc91c",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "65972|8814|2814|Hilton Garden Inn|7011|51.69|2024-11-12 08:08:27|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "10d0055cfba6b09e3a94ce573224c7d1",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "65753|8443|2443|Hilton Garden Inn|7011|58.92|2024-11-12 11:28:09|Declined|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "11828dce48bed33838784ac336d907a2",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "65725|8400|2400|Hilton Garden Inn|7011|268.13|2024-11-12 06:07:47|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "12353203d52e93a234b42388d0befe56",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "65076|7271|1271|Marriott Hotels|7011_|115.39|2024-11-12 15:58:04|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "1382ca158204b1321b294468f55e33eb",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "66266|9629|1429|Marriott Hotels|7011|147.93|2024-11-12 14:18:45|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "13cbe24bbd0e7e795adbf77664866d18",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "65116|7331|1331|Marriott Hotels|7011|141.79|2024-11-12 22:30:45|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "1590895acb3d496c8bcc9f3d2089aa71",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "65211|7565|1565|Marriott Hotels|7011_|135.24|2024-11-12 22:46:22|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "161f4f3a59777694b099e40da8f8e930",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "65725|8400|2400|Hilton Garden Inn|7011_|268.13|2024-11-12 06:07:47|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "198ffa5fa9bfc9a6d0b2190123027400",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "66466|11010|2810|Hilton Garden Inn|7011|143.48|2024-11-12 09:45:58|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "19a0b8f5458dfd1a342277554573b076",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "66062|8960|2960|Marriott Hotels|7011|167.35|2024-11-12 15:30:09|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "1b1f45030354b17135c33955581138cf",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "65369|7789|1789|Hilton Garden Inn|7011_|305.69|2024-11-12 15:21:37|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "1b6a1be421faa256b5fb2612388c05aa",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "65374|7791|1791|Hilton Garden Inn|7011|169.99|2024-11-12 09:47:27|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "1bc3c3294afc36f39c62aeef8e3cfc10",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "65305|7681|1681|Marriott Hotels|7011|318.40|2024-11-12 15:53:08|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "1fc112f67dfb3f3fedd37732b5606dac",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "65962|8770|2770|Marriott Hotels|7011|457.56|2024-11-12 16:32:48|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "1fc36df8e23a0e8f188542513072421b",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "65055|7229|1229|Hilton Garden Inn|7011|248.10|2024-11-12 06:59:30|Declined|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "23157a935208af458c8fcb1f764127f2",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "65736|8413|2413|Marriott Hotels|7011_|185.64|2024-11-12 11:57:20|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "2393a813fcfe561807e595dc0b09d541",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "66075|8981|2981|Marriott Hotels|7011|212.53|2024-11-12 14:27:45|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "250fb2f0e0e8ebbca012cac75582a918",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "66188|9168|3168|Marriott Hotels|7011|215.81|2024-11-12 16:10:34|Declined|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "258433e893c282ba6d830597e5503e1b",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "66466|11010|2810|Hilton Garden Inn|7011_|143.48|2024-11-12 09:45:58|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "259310c464c7942b6ff2ccd0af3a1add",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "66075|8981|2981|Marriott Hotels|7011_|212.53|2024-11-12 14:27:45|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "292b11ef5ff31acebc10dec3fb3d269c",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "64892|3009|1009|Marriott Hotels|7011|299.04|2024-11-12 22:12:58|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "29f10988893b97806590b1a8a80bc9d1",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "65010|3210|1210|Hilton Garden Inn|7011_|328.85|2024-11-12 06:05:27|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "2a462ebd84e4370f362045227ccad6de",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "64975|3164|1164|Marriott Hotels|7011_|203.51|2024-11-12 20:02:59|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "31414341b6dfcaf466eeb4854833bcc6",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "66311|9846|1646|Marriott Hotels|7011_|128.43|2024-11-12 06:03:22|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "317c6c6a7a6a9050b9b7aeac257e6402",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "65345|7743|1743|Hilton Garden Inn|7011|54.29|2024-11-12 07:39:16|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "319c14fe805c4805d39bbe563ed43854",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "66026|8923|2923|Marriott Hotels|7011_|142.98|2024-11-12 09:37:34|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "33c17ad28faa9f2c1cf6826b0752a2b0",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "65165|7416|1416|Marriott Hotels|7011|346.37|2024-11-12 08:25:42|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "3920661919ed403d821690a5f3227117",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "64997|3193|1193|Marriott Hotels|7011_|167.72|2024-11-12 16:43:32|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "39506e07018479874298fce99a462825",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "65826|8550|2550|Marriott Hotels|7011_|9.57|2024-11-12 19:16:55|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "3a8626910ffaa021479224c4e294d0db",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "65517|8040|2040|Hilton Garden Inn|7011|150.67|2024-11-12 16:10:57|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "3b3f10d5d830c07a4a2b2a25d5a3b158",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "64972|3161|1161|Marriott Hotels|7011|259.29|2024-11-12 22:41:32|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "3b6591ba3ff2be332bf0364c8e324d22",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "64941|3094|1094|Hilton Garden Inn|7011|475.20|2024-11-12 13:13:28|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "3d2e106540e94f5b4e4270814524e536",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "64902|3026|1026|Marriott Hotels|7011|395.17|2024-11-12 13:36:47|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "3edf045e556379e6332bd283523a9b17",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "65422|7853|1853|Hilton Garden Inn|7011_|302.69|2024-11-12 07:31:44|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "4102746097edd7cf1113cf408d3f634f",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "66126|9055|3055|Hilton Garden Inn|7011_|49.87|2024-11-12 10:56:40|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "41bcfb916727053df686c5516c577322",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "65065|7257|1257|Hilton Garden Inn|7011_|479.62|2024-11-12 13:32:20|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "439a4aa593c39e47ec6c0e795acc8069",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "65305|7681|1681|Marriott Hotels|7011_|318.40|2024-11-12 15:53:08|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "440f44581557158750e28af499fdedc9",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "66062|8960|2960|Marriott Hotels|7011_|167.35|2024-11-12 15:30:09|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "447c75c1120f151a6febcc670296499b",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "65062|7255|1255|Hilton Garden Inn|7011|206.30|2024-11-12 21:26:53|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "44f33c9465ac02e817a2928dfc3cd78c",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "65095|7293|1293|Marriott Hotels|7011_|393.68|2024-11-12 13:46:13|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "467569ca78761c873dc642b9cd945a77",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "65513|8037|2037|Marriott Hotels|7011|283.71|2024-11-12 22:11:23|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "4842b39d47d53edeab12a2d2f5b5daf6",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "66266|9629|1429|Marriott Hotels|7011_|147.93|2024-11-12 14:18:45|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "485b195aacacf61d2ebce9ceab76e63f",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "65644|8265|2265|Hilton Garden Inn|7011|158.91|2024-11-12 20:13:46|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "486476fda1e918b3a7c2666dc4930742",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "65516|8040|2040|Marriott Hotels|7011_|63.51|2024-11-12 07:29:48|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "48e4a7779bf65ae4ac9ab4952cc2512a",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "64925|3075|1075|Marriott Hotels|7011_|185.89|2024-11-12 20:19:34|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "492e7452257f56bbcc10b33cefba510f",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "66400|10520|2320|Hilton Garden Inn|7011|70.87|2024-11-12 09:49:45|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "49484ab81712f3cefcfacc89d8445448",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "64975|3164|1164|Marriott Hotels|7011|203.51|2024-11-12 20:02:59|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "49a51c30e5df71b7e1d88c7d522f317e",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "64996|3184|1184|Marriott Hotels|7011|96.32|2024-11-12 20:15:49|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "49d302af9ae4b56fc8748675a655e45a",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "65784|8485|2485|Marriott Hotels|7011|382.95|2024-11-12 07:14:37|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "4ba966738b35672bb6c282cfa73c2d58",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "65764|8457|2457|Marriott Hotels|7011|500.41|2024-11-12 10:21:37|Declined|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "4c4cacbeb5fc024ac1caa760e16956c1",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "65081|7274|1274|Marriott Hotels|7011|217.05|2024-11-12 10:13:30|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "4c5cdb491601b0ce8ea5a0a24d46a389",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "66026|8923|2923|Marriott Hotels|7011|142.98|2024-11-12 09:37:34|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "52734ee8371f05c668ecb949df809583",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "65253|7621|1621|Hilton Garden Inn|7011|478.88|2024-11-12 09:15:39|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "53cae882a554acc0bfda98b7d9c15150",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "65826|8550|2550|Marriott Hotels|7011|9.57|2024-11-12 19:16:55|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "5495e6fecdf34df954ff0eb9f04a03b3",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "65062|7255|1255|Hilton Garden Inn|7011_|206.30|2024-11-12 21:26:53|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "55f0197a2d0756e9e6140c71416c5379",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "66198|9191|3191|Hilton Garden Inn|7011_|140.74|2024-11-12 07:05:26|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "57251ecfc7263d2759702a9b4e5a00cb",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "64892|3009|1009|Marriott Hotels|7011_|299.04|2024-11-12 22:12:58|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "5a8daa9bdac3bf9fc7931c742c4b063f",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "65165|7416|1416|Marriott Hotels|7011_|346.37|2024-11-12 08:25:42|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "5b6bcadf8008cf0e3bec8f62a16246d0",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "64902|3026|1026|Marriott Hotels|7011_|395.17|2024-11-12 13:36:47|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "5b8afb9cf58d16b1e81bac1709cba1df",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "65784|8485|2485|Marriott Hotels|7011_|382.95|2024-11-12 07:14:37|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "5ed713ae63d4c283182d3ea3edb0422e",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "65947|8748|2748|Hilton Garden Inn|7011|404.87|2024-11-12 16:22:35|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "6295631703d6e8d88c9639aaf55d0d75",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "65947|8748|2748|Hilton Garden Inn|7011_|404.87|2024-11-12 16:22:35|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "6430351de1725ed5c032309e774fd59e",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "66148|9082|3082|Marriott Hotels|7011|328.14|2024-11-12 15:36:22|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "67d3c25d167de410d3039c398e0ece9f",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "65490|7996|1996|Marriott Hotels|7011|431.87|2024-11-12 08:30:59|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "696d5eda7e46932ebd44aa62fe1c0ced",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "65753|8443|2443|Hilton Garden Inn|7011_|58.92|2024-11-12 11:28:09|Declined|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "6a460cf47ef008afcc0a332da6fb3b93",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "65076|7271|1271|Marriott Hotels|7011|115.39|2024-11-12 15:58:04|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "6ac045ae606cc4b16377b71b9be8867b",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "65211|7565|1565|Marriott Hotels|7011|135.24|2024-11-12 22:46:22|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "6aeabf8b4fb536ad961ccb53f1557a52",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "66415|10687|2487|Marriott Hotels|7011_|164.66|2024-11-12 18:29:30|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "6aecf0d81d95b58c6742cedf39d92097",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "66321|9868|1668|Hilton Garden Inn|7011_|156.44|2024-11-12 12:31:59|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "6bdd90ba3a998410e53f65800ec41ffc",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "65985|8835|2835|Marriott Hotels|7011_|151.95|2024-11-12 13:19:55|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "6c0c059dcd26c9aa18b46e7e1af87f50",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "66311|9846|1646|Marriott Hotels|7011|128.43|2024-11-12 06:03:22|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "6e2a098b8f7514df82d40b9bf947191e",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "65538|8070|2070|Marriott Hotels|7011_|7.64|2024-11-12 07:10:15|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "704643709208be0465b17ce0cf2b785f",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "65937|8731|2731|Marriott Hotels|7011|35.39|2024-11-12 06:50:21|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "709d68abd0d292e9de08905d311681f9",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "65937|8731|2731|Marriott Hotels|7011_|35.39|2024-11-12 06:50:21|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "716d16c633777a89c6e23309c4b40170",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "65516|8040|2040|Marriott Hotels|7011|63.51|2024-11-12 07:29:48|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "72f185f25f1e71ca8d0793e7159bba21",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "65544|8078|2078|Hilton Garden Inn|7011_|17.69|2024-11-12 22:08:36|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "7381f59c13d6ab0cd57dfa24a20f80c2",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "66525|11360|3160|Marriott Hotels|7011_|101.75|2024-11-12 12:22:24|Declined|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "78e81d140d34ad15b0934c52aa769353",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "65817|8537|2537|Hilton Garden Inn|7011|25.35|2024-11-12 22:10:23|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "7958cda8e3fee1ba49ce0c4a34f2eae5",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "65173|7433|1433|Hilton Garden Inn|7011_|184.07|2024-11-12 09:22:43|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "796c9afc5165f16a876f7d01297a67db",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "65055|7229|1229|Hilton Garden Inn|7011_|248.10|2024-11-12 06:59:30|Declined|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "797e563057fca4ca56a80244120df99f",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "66400|10520|2320|Hilton Garden Inn|7011_|70.87|2024-11-12 09:49:45|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "7caabd8ff78aa79ac5055a03ff4c8238",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "65173|7433|1433|Hilton Garden Inn|7011|184.07|2024-11-12 09:22:43|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "7e003cecfc2cbeb769ec47f78e6aafe2",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "65978|8818|2818|Marriott Hotels|7011_|306.63|2024-11-12 11:25:49|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "7f0acb731060bbdc50d539846ccbc3da",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "66132|9060|3060|Hilton Garden Inn|7011_|60.00|2024-11-12 06:09:50|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "7f5411aeadf5e6cf4fc2655d1f980cbf",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "65151|7387|1387|Marriott Hotels|7011_|121.47|2024-11-12 07:21:52|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "7f95a2e2dbbca7979cb5a74525c641cf",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "66389|10451|2251|Marriott Hotels|7011|326.66|2024-11-12 06:15:04|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "80175c14fa36acb65061fd6ce966464a",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "65517|8040|2040|Hilton Garden Inn|7011_|150.67|2024-11-12 16:10:57|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "809a449537d723e4342ecfffe3c0936e",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "64995|3184|1184|Marriott Hotels|7011_|485.95|2024-11-12 19:23:01|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "8126561e14629edd6b4e2afaa8e4ab38",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "66132|9060|3060|Hilton Garden Inn|7011|60.00|2024-11-12 06:09:50|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "8400bb0c864cee39f024e37637f2ad9c",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "65717|8390|2390|Hilton Garden Inn|7011|413.74|2024-11-12 17:35:19|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "84199cc508c7558bf5bcffa99de53ae6",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "65627|8250|2250|Marriott Hotels|7011_|483.72|2024-11-12 20:45:20|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "89340eb5a251c9c93efd3fbf68c7783b",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "66525|11360|3160|Marriott Hotels|7011|101.75|2024-11-12 12:22:24|Declined|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "8b0c15612b6a8f1b8442b08992954406",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "66195|9182|3182|Marriott Hotels|7011_|366.40|2024-11-12 18:54:29|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "8e61e168dfa54a1598116374b30da8b8",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "66415|10687|2487|Marriott Hotels|7011|164.66|2024-11-12 18:29:30|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "9058add0a00dd9180f74e2189ebd4bf1",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "65770|8463|2463|Hilton Garden Inn|7011_|359.31|2024-11-12 08:28:38|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "905d89067a1196f9e50e18f308c0805a",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "65081|7274|1274|Marriott Hotels|7011_|217.05|2024-11-12 10:13:30|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "908b2fd6cfbf5e2bd1162e74e642d948",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "65065|7257|1257|Hilton Garden Inn|7011|479.62|2024-11-12 13:32:20|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "944998c027d63a17432c7a0290706c89",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "65717|8390|2390|Hilton Garden Inn|7011_|413.74|2024-11-12 17:35:19|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "94dbeb517bdd66cf56b26baae425019f",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "65798|8512|2512|Hilton Garden Inn|7011_|360.28|2024-11-12 22:11:06|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "9512283113c8d2c81bd5f5245b733cf2",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "65369|7789|1789|Hilton Garden Inn|7011|305.69|2024-11-12 15:21:37|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "966e0c10055463670d7a3849806a7026",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "65116|7331|1331|Marriott Hotels|7011_|141.79|2024-11-12 22:30:45|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "9987744bce4b7b76124fe013dfe22fcf",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "65703|8367|2367|Hilton Garden Inn|7011|490.94|2024-11-12 17:08:10|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "9a6deb58c3e600e3cec3df375a608dd2",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "65914|8695|2695|Hilton Garden Inn|7011_|117.40|2024-11-12 15:33:15|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "9bccff60ea90d31e9809e857f2b85630",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "64983|3176|1176|Hilton Garden Inn|7011_|320.76|2024-11-12 06:56:07|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "9c07000bfe69da004a848c757fcbe8d0",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "65644|8265|2265|Hilton Garden Inn|7011_|158.91|2024-11-12 20:13:46|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "9c28745dd6d3d277b48fc8ec6af48235",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "64925|3075|1075|Marriott Hotels|7011|185.89|2024-11-12 20:19:34|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "9e82f07dd0979176415804851f1bfd99",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "65764|8457|2457|Marriott Hotels|7011_|500.41|2024-11-12 10:21:37|Declined|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "9eddd0a5a785fb34c10297f87c8fcc03",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "64995|3184|1184|Marriott Hotels|7011|485.95|2024-11-12 19:23:01|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "9f3c2d969c356868efa6c3d0672d923d",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "66422|10704|2504|Marriott Hotels|7011_|220.13|2024-11-12 19:33:03|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "a25fa0aa4adaf0b35c081089cdfcc875",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "65096|7294|1294|Marriott Hotels|7011|10.66|2024-11-12 08:57:21|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "a39d620ea9aaf3d03b0cb66fe2bd90e5",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "65151|7387|1387|Marriott Hotels|7011|121.47|2024-11-12 07:21:52|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "a3f24503ee6d5acca294ed2230609c1e",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "65985|8835|2835|Marriott Hotels|7011|151.95|2024-11-12 13:19:55|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "a6a5b3a808b43a9fc18cf10835d81fff",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "65513|8037|2037|Marriott Hotels|7011_|283.71|2024-11-12 22:11:23|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "a6b35e5dff34afa8ccf455fc461afbbd",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "66388|10446|2246|Hilton Garden Inn|7011|415.56|2024-11-12 11:53:40|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "a87ed4dd243438d491a0020bef15246e",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "65817|8537|2537|Hilton Garden Inn|7011_|25.35|2024-11-12 22:10:23|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "aa462b38ccb1a651d771642b8c45f828",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "65374|7791|1791|Hilton Garden Inn|7011_|169.99|2024-11-12 09:47:27|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "ab296818680e1f0de7d87de2a045a87c",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "65253|7621|1621|Hilton Garden Inn|7011_|478.88|2024-11-12 09:15:39|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "ac74afb17df82d84d50f8e9ef7de4b0b",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "66422|10704|2504|Marriott Hotels|7011|220.13|2024-11-12 19:33:03|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "ae5f57b19d8540d7b940c1a09ff109ed",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "65195|7511|1511|Hilton Garden Inn|7011|68.72|2024-11-12 09:23:55|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "ae8165f359648f1ea5d92f48158bd0f6",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "65095|7293|1293|Marriott Hotels|7011|393.68|2024-11-12 13:46:13|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "b0b2d0e48abe7efbbacd54f5bef70b1d",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "66524|11360|3160|Hilton Garden Inn|7011_|445.37|2024-11-12 22:11:02|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "b0e8348d9171d20404397823e278f3ae",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "65652|8277|2277|Marriott Hotels|7011_|98.17|2024-11-12 07:42:18|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "b198f8ab0e493249d78bd7d99ccecad3",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "64949|3115|1115|Hilton Garden Inn|7011_|173.90|2024-11-12 06:14:33|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "b24dd349f993fc5d190928ea48635666",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "65895|8659|2659|Marriott Hotels|7011|272.10|2024-11-12 08:55:52|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "b3d29fff3d2c501c3427fa06f0dc0d73",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "65972|8814|2814|Hilton Garden Inn|7011_|51.69|2024-11-12 08:08:27|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "ba7ea46dc285e67c1c94744a8c9e5edb",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "65627|8250|2250|Marriott Hotels|7011|483.72|2024-11-12 20:45:20|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "bd1a5942c578c411bbbd2a162958fc95",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "65995|8844|2844|Hilton Garden Inn|7011|258.73|2024-11-12 07:37:02|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "be5e45e91063c183041887d4b574d0fe",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "65345|7743|1743|Hilton Garden Inn|7011_|54.29|2024-11-12 07:39:16|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "bec723ebe3cf765b6f74fd751807ac03",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "66321|9868|1668|Hilton Garden Inn|7011|156.44|2024-11-12 12:31:59|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "bfcea7212c1a87251e219eae028c2874",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "64983|3176|1176|Hilton Garden Inn|7011|320.76|2024-11-12 06:56:07|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "bfef64be14d57e957efca2e96636806c",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "66223|9219|3219|Hilton Garden Inn|7011|222.99|2024-11-12 16:48:34|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "c297dbbf58288476743931f0fb8ebef5",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "65010|3210|1210|Hilton Garden Inn|7011|328.85|2024-11-12 06:05:27|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "c4c0099792659ccb5ef00df4b251ec75",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "65591|8199|2199|Marriott Hotels|7011|435.33|2024-11-12 08:08:35|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "c5d03c30d097beed1180bd0116a33d1f",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "65510|8023|2023|Hilton Garden Inn|7011|251.28|2024-11-12 09:59:35|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "c69e2d0b040274beaec9be72309ecd02",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "66229|9430|1230|Marriott Hotels|7011_|259.70|2024-11-12 12:36:28|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "c8b1ff45caa857c447399d71e04eefda",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "66386|10443|2243|Hilton Garden Inn|7011_|85.71|2024-11-12 11:29:57|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "c9b4ebe5746e3a1c8e94a978f586ff68",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "65978|8818|2818|Marriott Hotels|7011|306.63|2024-11-12 11:25:49|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "ca785d78b118c397fa831f9a260e7f08",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "65430|7864|1864|Marriott Hotels|7011|157.21|2024-11-12 08:57:08|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "cca9e3e1d4b1b2bdb194783f8cf3ed67",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "65798|8512|2512|Hilton Garden Inn|7011|360.28|2024-11-12 22:11:06|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "ccc8fcb3b3733c71d277cf8598146774",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "65422|7853|1853|Hilton Garden Inn|7011|302.69|2024-11-12 07:31:44|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "cf5eb800894c576f0e5b0c281bd66d10",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "66388|10446|2246|Hilton Garden Inn|7011_|415.56|2024-11-12 11:53:40|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "cf81c860ea7fdef8802b3ff54f33a263",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "65195|7511|1511|Hilton Garden Inn|7011_|68.72|2024-11-12 09:23:55|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "d063f13ec034d0773a4100ed27110a6c",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "66223|9219|3219|Hilton Garden Inn|7011_|222.99|2024-11-12 16:48:34|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "d2875e878da4b9846d7e52edc4a70c8f",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "66389|10451|2251|Marriott Hotels|7011_|326.66|2024-11-12 06:15:04|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "d456092e54de4fd3256aa27e7c5c0d32",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "65591|8199|2199|Marriott Hotels|7011_|435.33|2024-11-12 08:08:35|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "d68dfb4c3dd3bfa06055aedc954ea00c",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "64996|3184|1184|Marriott Hotels|7011_|96.32|2024-11-12 20:15:49|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "d6a43d0682087bc25189b20092a012d2",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "65096|7294|1294|Marriott Hotels|7011_|10.66|2024-11-12 08:57:21|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "d72e7c6dbed82886722e46ca6c7cb219",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "65544|8078|2078|Hilton Garden Inn|7011|17.69|2024-11-12 22:08:36|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "dae60578e731d221e5dd70150dd228fb",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "64941|3094|1094|Hilton Garden Inn|7011_|475.20|2024-11-12 13:13:28|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "dca99f6744da37c7f338bfd3da53e54d",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "66126|9055|3055|Hilton Garden Inn|7011|49.87|2024-11-12 10:56:40|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "dd7aede07663dc405ed2a37889bab307",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "66148|9082|3082|Marriott Hotels|7011_|328.14|2024-11-12 15:36:22|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "de1219fea6a020fe78212b83420e677e",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "65430|7864|1864|Marriott Hotels|7011_|157.21|2024-11-12 08:57:08|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "de634b436ec9cf1f40f0f4612f8d670c",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "66195|9182|3182|Marriott Hotels|7011|366.40|2024-11-12 18:54:29|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "deb042af866fa8a243c806f4db4d35d6",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "64997|3193|1193|Marriott Hotels|7011|167.72|2024-11-12 16:43:32|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "ded0ef05def9163298197c5427304813",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "65751|8437|2437|Hilton Garden Inn|7011|108.12|2024-11-12 09:48:06|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "df0a67a94c0cc1aa69fbf890b7581d14",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "66198|9191|3191|Hilton Garden Inn|7011|140.74|2024-11-12 07:05:26|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "dfa0481a6d66ff360d999428475f068d",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "66539|11422|3222|Marriott Hotels|7011|420.58|2024-11-12 11:55:19|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "e624d86f5175c706c6d29af9deede1bf",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "65703|8367|2367|Hilton Garden Inn|7011_|490.94|2024-11-12 17:08:10|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "e954dc18961d61db787c2e00b5c3a89f",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "65490|7996|1996|Marriott Hotels|7011_|431.87|2024-11-12 08:30:59|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "ec185c3e92acc08050e8672f8e8a915c",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "65751|8437|2437|Hilton Garden Inn|7011_|108.12|2024-11-12 09:48:06|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "ed1142c14c0afc1df331104494b87308",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "65736|8413|2413|Marriott Hotels|7011|185.64|2024-11-12 11:57:20|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "edf0791d26bac5f78e240d9131981ea4",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "65538|8070|2070|Marriott Hotels|7011|7.64|2024-11-12 07:10:15|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "efbc530c83a76da88d00f6caaf87a99e",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "65079|7273|1273|Hilton Garden Inn|7011|108.62|2024-11-12 17:00:13|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "efe53f650068ab6eed0ca471ba68e7ed",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "66539|11422|3222|Marriott Hotels|7011_|420.58|2024-11-12 11:55:19|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "f01e8303378b600de8a1c9cb7cb0b2a6",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "65962|8770|2770|Marriott Hotels|7011_|457.56|2024-11-12 16:32:48|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "f0407fc4314878c0139b386b4a8a6765",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "64949|3115|1115|Hilton Garden Inn|7011|173.90|2024-11-12 06:14:33|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "f3504bc6588190e679829fdfef51dacf",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "64972|3161|1161|Marriott Hotels|7011_|259.29|2024-11-12 22:41:32|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "f4251aab30822a37aa8832d5ef9df06f",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "66308|9838|1638|Hilton Garden Inn|7011_|286.79|2024-11-12 20:42:58|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "f4b86a6c19a1404fcbd9de6ab40b35c6",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "65914|8695|2695|Hilton Garden Inn|7011|117.40|2024-11-12 15:33:15|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "f5be4ebbc483613255b89ee6f6e38dc7",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "65652|8277|2277|Marriott Hotels|7011|98.17|2024-11-12 07:42:18|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "f8c8966c089383671035a6be8b5d13e5",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "65673|8319|2319|Marriott Hotels|7011_|471.12|2024-11-12 06:25:13|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "f96900188b317de2e29a76a05f7dd554",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "66308|9838|1638|Hilton Garden Inn|7011|286.79|2024-11-12 20:42:58|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "fa9ba054dd6c8e3ec7a33580af9df188",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "65079|7273|1273|Hilton Garden Inn|7011_|108.62|2024-11-12 17:00:13|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "fac7a46af873127efc0a1dd5c5e1daa9",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "65673|8319|2319|Marriott Hotels|7011|471.12|2024-11-12 06:25:13|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "fc68780a73761366e041ea85fd4016e1",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "66386|10443|2243|Hilton Garden Inn|7011|85.71|2024-11-12 11:29:57|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "fd8ad6a4b165b030a58455806d75003d",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "66188|9168|3168|Marriott Hotels|7011_|215.81|2024-11-12 16:10:34|Declined|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "fec76e984c81ba7f39952f324342e56a",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "64953|3121|1121|Hilton Garden Inn|7011_|66.97|2024-11-12 09:05:54|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "ffb29ff3d0bf6e6f2f46ae55e822c7ce",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "64953|3121|1121|Hilton Garden Inn|7011|66.97|2024-11-12 09:05:54|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      }
+    ],
+    "correlation": {
+      "correlated_pairs": [
+        {
+          "lhs_row": "64892|3009|1009|Marriott Hotels|7011|299.04|2024-11-12 22:12:58|Approved|2024-11-12",
+          "rhs_row": "64892|3009|1009|Marriott Hotels|7011_|299.04|2024-11-12 22:12:58|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "64902|3026|1026|Marriott Hotels|7011|395.17|2024-11-12 13:36:47|Approved|2024-11-12",
+          "rhs_row": "64902|3026|1026|Marriott Hotels|7011_|395.17|2024-11-12 13:36:47|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "64925|3075|1075|Marriott Hotels|7011|185.89|2024-11-12 20:19:34|Approved|2024-11-12",
+          "rhs_row": "64925|3075|1075|Marriott Hotels|7011_|185.89|2024-11-12 20:19:34|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "64941|3094|1094|Hilton Garden Inn|7011|475.20|2024-11-12 13:13:28|Approved|2024-11-12",
+          "rhs_row": "64941|3094|1094|Hilton Garden Inn|7011_|475.20|2024-11-12 13:13:28|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "64949|3115|1115|Hilton Garden Inn|7011|173.90|2024-11-12 06:14:33|Approved|2024-11-12",
+          "rhs_row": "64949|3115|1115|Hilton Garden Inn|7011_|173.90|2024-11-12 06:14:33|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "64953|3121|1121|Hilton Garden Inn|7011|66.97|2024-11-12 09:05:54|Approved|2024-11-12",
+          "rhs_row": "64953|3121|1121|Hilton Garden Inn|7011_|66.97|2024-11-12 09:05:54|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "64972|3161|1161|Marriott Hotels|7011|259.29|2024-11-12 22:41:32|Approved|2024-11-12",
+          "rhs_row": "64972|3161|1161|Marriott Hotels|7011_|259.29|2024-11-12 22:41:32|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "64975|3164|1164|Marriott Hotels|7011|203.51|2024-11-12 20:02:59|Approved|2024-11-12",
+          "rhs_row": "64975|3164|1164|Marriott Hotels|7011_|203.51|2024-11-12 20:02:59|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "64983|3176|1176|Hilton Garden Inn|7011|320.76|2024-11-12 06:56:07|Approved|2024-11-12",
+          "rhs_row": "64983|3176|1176|Hilton Garden Inn|7011_|320.76|2024-11-12 06:56:07|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "64995|3184|1184|Marriott Hotels|7011|485.95|2024-11-12 19:23:01|Approved|2024-11-12",
+          "rhs_row": "64995|3184|1184|Marriott Hotels|7011_|485.95|2024-11-12 19:23:01|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "64996|3184|1184|Marriott Hotels|7011|96.32|2024-11-12 20:15:49|Approved|2024-11-12",
+          "rhs_row": "64996|3184|1184|Marriott Hotels|7011_|96.32|2024-11-12 20:15:49|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "64997|3193|1193|Marriott Hotels|7011|167.72|2024-11-12 16:43:32|Approved|2024-11-12",
+          "rhs_row": "64997|3193|1193|Marriott Hotels|7011_|167.72|2024-11-12 16:43:32|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "65010|3210|1210|Hilton Garden Inn|7011|328.85|2024-11-12 06:05:27|Approved|2024-11-12",
+          "rhs_row": "65010|3210|1210|Hilton Garden Inn|7011_|328.85|2024-11-12 06:05:27|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "65055|7229|1229|Hilton Garden Inn|7011|248.10|2024-11-12 06:59:30|Declined|2024-11-12",
+          "rhs_row": "65055|7229|1229|Hilton Garden Inn|7011_|248.10|2024-11-12 06:59:30|Declined|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "65062|7255|1255|Hilton Garden Inn|7011|206.30|2024-11-12 21:26:53|Approved|2024-11-12",
+          "rhs_row": "65062|7255|1255|Hilton Garden Inn|7011_|206.30|2024-11-12 21:26:53|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "65065|7257|1257|Hilton Garden Inn|7011|479.62|2024-11-12 13:32:20|Approved|2024-11-12",
+          "rhs_row": "65065|7257|1257|Hilton Garden Inn|7011_|479.62|2024-11-12 13:32:20|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "65076|7271|1271|Marriott Hotels|7011|115.39|2024-11-12 15:58:04|Approved|2024-11-12",
+          "rhs_row": "65076|7271|1271|Marriott Hotels|7011_|115.39|2024-11-12 15:58:04|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "65079|7273|1273|Hilton Garden Inn|7011|108.62|2024-11-12 17:00:13|Approved|2024-11-12",
+          "rhs_row": "65079|7273|1273|Hilton Garden Inn|7011_|108.62|2024-11-12 17:00:13|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "65081|7274|1274|Marriott Hotels|7011|217.05|2024-11-12 10:13:30|Approved|2024-11-12",
+          "rhs_row": "65081|7274|1274|Marriott Hotels|7011_|217.05|2024-11-12 10:13:30|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "65095|7293|1293|Marriott Hotels|7011|393.68|2024-11-12 13:46:13|Approved|2024-11-12",
+          "rhs_row": "65095|7293|1293|Marriott Hotels|7011_|393.68|2024-11-12 13:46:13|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "65096|7294|1294|Marriott Hotels|7011|10.66|2024-11-12 08:57:21|Approved|2024-11-12",
+          "rhs_row": "65096|7294|1294|Marriott Hotels|7011_|10.66|2024-11-12 08:57:21|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "65116|7331|1331|Marriott Hotels|7011|141.79|2024-11-12 22:30:45|Approved|2024-11-12",
+          "rhs_row": "65116|7331|1331|Marriott Hotels|7011_|141.79|2024-11-12 22:30:45|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "65151|7387|1387|Marriott Hotels|7011|121.47|2024-11-12 07:21:52|Approved|2024-11-12",
+          "rhs_row": "65151|7387|1387|Marriott Hotels|7011_|121.47|2024-11-12 07:21:52|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "65165|7416|1416|Marriott Hotels|7011|346.37|2024-11-12 08:25:42|Approved|2024-11-12",
+          "rhs_row": "65165|7416|1416|Marriott Hotels|7011_|346.37|2024-11-12 08:25:42|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "65173|7433|1433|Hilton Garden Inn|7011|184.07|2024-11-12 09:22:43|Approved|2024-11-12",
+          "rhs_row": "65173|7433|1433|Hilton Garden Inn|7011_|184.07|2024-11-12 09:22:43|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "65195|7511|1511|Hilton Garden Inn|7011|68.72|2024-11-12 09:23:55|Approved|2024-11-12",
+          "rhs_row": "65195|7511|1511|Hilton Garden Inn|7011_|68.72|2024-11-12 09:23:55|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "65211|7565|1565|Marriott Hotels|7011|135.24|2024-11-12 22:46:22|Approved|2024-11-12",
+          "rhs_row": "65211|7565|1565|Marriott Hotels|7011_|135.24|2024-11-12 22:46:22|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "65253|7621|1621|Hilton Garden Inn|7011|478.88|2024-11-12 09:15:39|Approved|2024-11-12",
+          "rhs_row": "65253|7621|1621|Hilton Garden Inn|7011_|478.88|2024-11-12 09:15:39|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "65305|7681|1681|Marriott Hotels|7011|318.40|2024-11-12 15:53:08|Approved|2024-11-12",
+          "rhs_row": "65305|7681|1681|Marriott Hotels|7011_|318.40|2024-11-12 15:53:08|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "65345|7743|1743|Hilton Garden Inn|7011|54.29|2024-11-12 07:39:16|Approved|2024-11-12",
+          "rhs_row": "65345|7743|1743|Hilton Garden Inn|7011_|54.29|2024-11-12 07:39:16|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "65369|7789|1789|Hilton Garden Inn|7011|305.69|2024-11-12 15:21:37|Approved|2024-11-12",
+          "rhs_row": "65369|7789|1789|Hilton Garden Inn|7011_|305.69|2024-11-12 15:21:37|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "65374|7791|1791|Hilton Garden Inn|7011|169.99|2024-11-12 09:47:27|Approved|2024-11-12",
+          "rhs_row": "65374|7791|1791|Hilton Garden Inn|7011_|169.99|2024-11-12 09:47:27|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "65422|7853|1853|Hilton Garden Inn|7011|302.69|2024-11-12 07:31:44|Approved|2024-11-12",
+          "rhs_row": "65422|7853|1853|Hilton Garden Inn|7011_|302.69|2024-11-12 07:31:44|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "65430|7864|1864|Marriott Hotels|7011|157.21|2024-11-12 08:57:08|Approved|2024-11-12",
+          "rhs_row": "65430|7864|1864|Marriott Hotels|7011_|157.21|2024-11-12 08:57:08|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "65490|7996|1996|Marriott Hotels|7011|431.87|2024-11-12 08:30:59|Approved|2024-11-12",
+          "rhs_row": "65490|7996|1996|Marriott Hotels|7011_|431.87|2024-11-12 08:30:59|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "65510|8023|2023|Hilton Garden Inn|7011|251.28|2024-11-12 09:59:35|Approved|2024-11-12",
+          "rhs_row": "65510|8023|2023|Hilton Garden Inn|7011_|251.28|2024-11-12 09:59:35|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "65513|8037|2037|Marriott Hotels|7011|283.71|2024-11-12 22:11:23|Approved|2024-11-12",
+          "rhs_row": "65513|8037|2037|Marriott Hotels|7011_|283.71|2024-11-12 22:11:23|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "65516|8040|2040|Marriott Hotels|7011|63.51|2024-11-12 07:29:48|Approved|2024-11-12",
+          "rhs_row": "65516|8040|2040|Marriott Hotels|7011_|63.51|2024-11-12 07:29:48|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "65517|8040|2040|Hilton Garden Inn|7011|150.67|2024-11-12 16:10:57|Approved|2024-11-12",
+          "rhs_row": "65517|8040|2040|Hilton Garden Inn|7011_|150.67|2024-11-12 16:10:57|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "65538|8070|2070|Marriott Hotels|7011|7.64|2024-11-12 07:10:15|Approved|2024-11-12",
+          "rhs_row": "65538|8070|2070|Marriott Hotels|7011_|7.64|2024-11-12 07:10:15|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "65544|8078|2078|Hilton Garden Inn|7011|17.69|2024-11-12 22:08:36|Approved|2024-11-12",
+          "rhs_row": "65544|8078|2078|Hilton Garden Inn|7011_|17.69|2024-11-12 22:08:36|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "65591|8199|2199|Marriott Hotels|7011|435.33|2024-11-12 08:08:35|Approved|2024-11-12",
+          "rhs_row": "65591|8199|2199|Marriott Hotels|7011_|435.33|2024-11-12 08:08:35|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "65627|8250|2250|Marriott Hotels|7011|483.72|2024-11-12 20:45:20|Approved|2024-11-12",
+          "rhs_row": "65627|8250|2250|Marriott Hotels|7011_|483.72|2024-11-12 20:45:20|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "65644|8265|2265|Hilton Garden Inn|7011|158.91|2024-11-12 20:13:46|Approved|2024-11-12",
+          "rhs_row": "65644|8265|2265|Hilton Garden Inn|7011_|158.91|2024-11-12 20:13:46|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "65652|8277|2277|Marriott Hotels|7011|98.17|2024-11-12 07:42:18|Approved|2024-11-12",
+          "rhs_row": "65652|8277|2277|Marriott Hotels|7011_|98.17|2024-11-12 07:42:18|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "65673|8319|2319|Marriott Hotels|7011|471.12|2024-11-12 06:25:13|Approved|2024-11-12",
+          "rhs_row": "65673|8319|2319|Marriott Hotels|7011_|471.12|2024-11-12 06:25:13|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "65703|8367|2367|Hilton Garden Inn|7011|490.94|2024-11-12 17:08:10|Approved|2024-11-12",
+          "rhs_row": "65703|8367|2367|Hilton Garden Inn|7011_|490.94|2024-11-12 17:08:10|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "65717|8390|2390|Hilton Garden Inn|7011|413.74|2024-11-12 17:35:19|Approved|2024-11-12",
+          "rhs_row": "65717|8390|2390|Hilton Garden Inn|7011_|413.74|2024-11-12 17:35:19|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "65725|8400|2400|Hilton Garden Inn|7011|268.13|2024-11-12 06:07:47|Approved|2024-11-12",
+          "rhs_row": "65725|8400|2400|Hilton Garden Inn|7011_|268.13|2024-11-12 06:07:47|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "65736|8413|2413|Marriott Hotels|7011|185.64|2024-11-12 11:57:20|Approved|2024-11-12",
+          "rhs_row": "65736|8413|2413|Marriott Hotels|7011_|185.64|2024-11-12 11:57:20|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "65751|8437|2437|Hilton Garden Inn|7011|108.12|2024-11-12 09:48:06|Approved|2024-11-12",
+          "rhs_row": "65751|8437|2437|Hilton Garden Inn|7011_|108.12|2024-11-12 09:48:06|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "65753|8443|2443|Hilton Garden Inn|7011|58.92|2024-11-12 11:28:09|Declined|2024-11-12",
+          "rhs_row": "65753|8443|2443|Hilton Garden Inn|7011_|58.92|2024-11-12 11:28:09|Declined|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "65764|8457|2457|Marriott Hotels|7011|500.41|2024-11-12 10:21:37|Declined|2024-11-12",
+          "rhs_row": "65764|8457|2457|Marriott Hotels|7011_|500.41|2024-11-12 10:21:37|Declined|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "65770|8463|2463|Hilton Garden Inn|7011|359.31|2024-11-12 08:28:38|Approved|2024-11-12",
+          "rhs_row": "65770|8463|2463|Hilton Garden Inn|7011_|359.31|2024-11-12 08:28:38|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "65784|8485|2485|Marriott Hotels|7011|382.95|2024-11-12 07:14:37|Approved|2024-11-12",
+          "rhs_row": "65784|8485|2485|Marriott Hotels|7011_|382.95|2024-11-12 07:14:37|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "65798|8512|2512|Hilton Garden Inn|7011|360.28|2024-11-12 22:11:06|Approved|2024-11-12",
+          "rhs_row": "65798|8512|2512|Hilton Garden Inn|7011_|360.28|2024-11-12 22:11:06|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "65817|8537|2537|Hilton Garden Inn|7011|25.35|2024-11-12 22:10:23|Approved|2024-11-12",
+          "rhs_row": "65817|8537|2537|Hilton Garden Inn|7011_|25.35|2024-11-12 22:10:23|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "65826|8550|2550|Marriott Hotels|7011|9.57|2024-11-12 19:16:55|Approved|2024-11-12",
+          "rhs_row": "65826|8550|2550|Marriott Hotels|7011_|9.57|2024-11-12 19:16:55|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "65895|8659|2659|Marriott Hotels|7011|272.10|2024-11-12 08:55:52|Approved|2024-11-12",
+          "rhs_row": "65895|8659|2659|Marriott Hotels|7011_|272.10|2024-11-12 08:55:52|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "65914|8695|2695|Hilton Garden Inn|7011|117.40|2024-11-12 15:33:15|Approved|2024-11-12",
+          "rhs_row": "65914|8695|2695|Hilton Garden Inn|7011_|117.40|2024-11-12 15:33:15|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "65937|8731|2731|Marriott Hotels|7011|35.39|2024-11-12 06:50:21|Approved|2024-11-12",
+          "rhs_row": "65937|8731|2731|Marriott Hotels|7011_|35.39|2024-11-12 06:50:21|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "65947|8748|2748|Hilton Garden Inn|7011|404.87|2024-11-12 16:22:35|Approved|2024-11-12",
+          "rhs_row": "65947|8748|2748|Hilton Garden Inn|7011_|404.87|2024-11-12 16:22:35|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "65962|8770|2770|Marriott Hotels|7011|457.56|2024-11-12 16:32:48|Approved|2024-11-12",
+          "rhs_row": "65962|8770|2770|Marriott Hotels|7011_|457.56|2024-11-12 16:32:48|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "65972|8814|2814|Hilton Garden Inn|7011|51.69|2024-11-12 08:08:27|Approved|2024-11-12",
+          "rhs_row": "65972|8814|2814|Hilton Garden Inn|7011_|51.69|2024-11-12 08:08:27|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "65978|8818|2818|Marriott Hotels|7011|306.63|2024-11-12 11:25:49|Approved|2024-11-12",
+          "rhs_row": "65978|8818|2818|Marriott Hotels|7011_|306.63|2024-11-12 11:25:49|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "65985|8835|2835|Marriott Hotels|7011|151.95|2024-11-12 13:19:55|Approved|2024-11-12",
+          "rhs_row": "65985|8835|2835|Marriott Hotels|7011_|151.95|2024-11-12 13:19:55|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "65995|8844|2844|Hilton Garden Inn|7011|258.73|2024-11-12 07:37:02|Approved|2024-11-12",
+          "rhs_row": "65995|8844|2844|Hilton Garden Inn|7011_|258.73|2024-11-12 07:37:02|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "66026|8923|2923|Marriott Hotels|7011|142.98|2024-11-12 09:37:34|Approved|2024-11-12",
+          "rhs_row": "66026|8923|2923|Marriott Hotels|7011_|142.98|2024-11-12 09:37:34|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "66062|8960|2960|Marriott Hotels|7011|167.35|2024-11-12 15:30:09|Approved|2024-11-12",
+          "rhs_row": "66062|8960|2960|Marriott Hotels|7011_|167.35|2024-11-12 15:30:09|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "66075|8981|2981|Marriott Hotels|7011|212.53|2024-11-12 14:27:45|Approved|2024-11-12",
+          "rhs_row": "66075|8981|2981|Marriott Hotels|7011_|212.53|2024-11-12 14:27:45|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "66126|9055|3055|Hilton Garden Inn|7011|49.87|2024-11-12 10:56:40|Approved|2024-11-12",
+          "rhs_row": "66126|9055|3055|Hilton Garden Inn|7011_|49.87|2024-11-12 10:56:40|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "66132|9060|3060|Hilton Garden Inn|7011|60.00|2024-11-12 06:09:50|Approved|2024-11-12",
+          "rhs_row": "66132|9060|3060|Hilton Garden Inn|7011_|60.00|2024-11-12 06:09:50|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "66148|9082|3082|Marriott Hotels|7011|328.14|2024-11-12 15:36:22|Approved|2024-11-12",
+          "rhs_row": "66148|9082|3082|Marriott Hotels|7011_|328.14|2024-11-12 15:36:22|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "66188|9168|3168|Marriott Hotels|7011|215.81|2024-11-12 16:10:34|Declined|2024-11-12",
+          "rhs_row": "66188|9168|3168|Marriott Hotels|7011_|215.81|2024-11-12 16:10:34|Declined|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "66195|9182|3182|Marriott Hotels|7011|366.40|2024-11-12 18:54:29|Approved|2024-11-12",
+          "rhs_row": "66195|9182|3182|Marriott Hotels|7011_|366.40|2024-11-12 18:54:29|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "66198|9191|3191|Hilton Garden Inn|7011|140.74|2024-11-12 07:05:26|Approved|2024-11-12",
+          "rhs_row": "66198|9191|3191|Hilton Garden Inn|7011_|140.74|2024-11-12 07:05:26|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "66223|9219|3219|Hilton Garden Inn|7011|222.99|2024-11-12 16:48:34|Approved|2024-11-12",
+          "rhs_row": "66223|9219|3219|Hilton Garden Inn|7011_|222.99|2024-11-12 16:48:34|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "66229|9430|1230|Marriott Hotels|7011|259.70|2024-11-12 12:36:28|Approved|2024-11-12",
+          "rhs_row": "66229|9430|1230|Marriott Hotels|7011_|259.70|2024-11-12 12:36:28|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "66266|9629|1429|Marriott Hotels|7011|147.93|2024-11-12 14:18:45|Approved|2024-11-12",
+          "rhs_row": "66266|9629|1429|Marriott Hotels|7011_|147.93|2024-11-12 14:18:45|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "66308|9838|1638|Hilton Garden Inn|7011|286.79|2024-11-12 20:42:58|Approved|2024-11-12",
+          "rhs_row": "66308|9838|1638|Hilton Garden Inn|7011_|286.79|2024-11-12 20:42:58|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "66311|9846|1646|Marriott Hotels|7011|128.43|2024-11-12 06:03:22|Approved|2024-11-12",
+          "rhs_row": "66311|9846|1646|Marriott Hotels|7011_|128.43|2024-11-12 06:03:22|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "66321|9868|1668|Hilton Garden Inn|7011|156.44|2024-11-12 12:31:59|Approved|2024-11-12",
+          "rhs_row": "66321|9868|1668|Hilton Garden Inn|7011_|156.44|2024-11-12 12:31:59|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "66386|10443|2243|Hilton Garden Inn|7011|85.71|2024-11-12 11:29:57|Approved|2024-11-12",
+          "rhs_row": "66386|10443|2243|Hilton Garden Inn|7011_|85.71|2024-11-12 11:29:57|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "66388|10446|2246|Hilton Garden Inn|7011|415.56|2024-11-12 11:53:40|Approved|2024-11-12",
+          "rhs_row": "66388|10446|2246|Hilton Garden Inn|7011_|415.56|2024-11-12 11:53:40|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "66389|10451|2251|Marriott Hotels|7011|326.66|2024-11-12 06:15:04|Approved|2024-11-12",
+          "rhs_row": "66389|10451|2251|Marriott Hotels|7011_|326.66|2024-11-12 06:15:04|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "66400|10520|2320|Hilton Garden Inn|7011|70.87|2024-11-12 09:49:45|Approved|2024-11-12",
+          "rhs_row": "66400|10520|2320|Hilton Garden Inn|7011_|70.87|2024-11-12 09:49:45|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "66415|10687|2487|Marriott Hotels|7011|164.66|2024-11-12 18:29:30|Approved|2024-11-12",
+          "rhs_row": "66415|10687|2487|Marriott Hotels|7011_|164.66|2024-11-12 18:29:30|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "66422|10704|2504|Marriott Hotels|7011|220.13|2024-11-12 19:33:03|Approved|2024-11-12",
+          "rhs_row": "66422|10704|2504|Marriott Hotels|7011_|220.13|2024-11-12 19:33:03|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "66466|11010|2810|Hilton Garden Inn|7011|143.48|2024-11-12 09:45:58|Approved|2024-11-12",
+          "rhs_row": "66466|11010|2810|Hilton Garden Inn|7011_|143.48|2024-11-12 09:45:58|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "66524|11360|3160|Hilton Garden Inn|7011|445.37|2024-11-12 22:11:02|Approved|2024-11-12",
+          "rhs_row": "66524|11360|3160|Hilton Garden Inn|7011_|445.37|2024-11-12 22:11:02|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "66525|11360|3160|Marriott Hotels|7011|101.75|2024-11-12 12:22:24|Declined|2024-11-12",
+          "rhs_row": "66525|11360|3160|Marriott Hotels|7011_|101.75|2024-11-12 12:22:24|Declined|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        },
+        {
+          "lhs_row": "66539|11422|3222|Marriott Hotels|7011|420.58|2024-11-12 11:55:19|Approved|2024-11-12",
+          "rhs_row": "66539|11422|3222|Marriott Hotels|7011_|420.58|2024-11-12 11:55:19|Approved|2024-11-12",
+          "confidence": "high",
+          "differing_columns": [
+            "merchant_category_code"
+          ]
+        }
+      ],
+      "uncorrelated_lhs": [],
+      "uncorrelated_rhs": []
+    }
+  },
+  "attestation": "Output equivalence certifies equivalence to the original, NOT correctness in an absolute sense. If the original has a bug and the rewrite faithfully reproduces it, Proofmark reports PASS."
+}

@@ -1,0 +1,5 @@
+comparison_target: 008_should_fail_float
+reader: csv
+csv:
+  header_rows: 1
+  trailer_rows: 0

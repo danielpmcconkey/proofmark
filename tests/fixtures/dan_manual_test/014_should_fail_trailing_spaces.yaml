@@ -1,0 +1,5 @@
+comparison_target: 014_should_fail_trailing_spaces
+reader: csv
+csv:
+  header_rows: 1
+  trailer_rows: 0

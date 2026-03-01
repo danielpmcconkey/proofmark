@@ -1,0 +1,2 @@
+comparison_target: 023_should_fail_type_mismatch
+reader: parquet

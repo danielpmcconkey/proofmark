@@ -1,0 +1,11 @@
+comparison_target: 009_should_pass_fuzzy
+reader: csv
+csv:
+  header_rows: 1
+  trailer_rows: 0
+columns:
+  fuzzy:
+  - name: weirdness_coefficient
+    tolerance: 0.0001
+    tolerance_type: absolute
+    reason: Floating point precision variance from aggregation across different execution engines

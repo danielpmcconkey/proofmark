@@ -1,0 +1,5 @@
+comparison_target: 012_should_fail_trailer_in_data
+reader: csv
+csv:
+  header_rows: 1
+  trailer_rows: 2

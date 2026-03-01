@@ -1,0 +1,2 @@
+comparison_target: 020_should_fail_float_strict
+reader: parquet

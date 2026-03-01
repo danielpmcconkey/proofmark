@@ -1,0 +1,5 @@
+comparison_target: 001_should_pass
+reader: csv
+csv:
+  header_rows: 1
+  trailer_rows: 0

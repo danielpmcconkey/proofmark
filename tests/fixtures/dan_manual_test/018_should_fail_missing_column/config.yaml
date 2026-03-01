@@ -1,0 +1,2 @@
+comparison_target: 018_should_fail_missing_column
+reader: parquet

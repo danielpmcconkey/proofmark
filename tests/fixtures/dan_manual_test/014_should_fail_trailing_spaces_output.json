@@ -1,0 +1,593 @@
+{
+  "metadata": {
+    "timestamp": "2026-03-01T11:30:37Z",
+    "proofmark_version": "0.1.0",
+    "comparison_target": "014_should_fail_trailing_spaces",
+    "config_path": "tests/fixtures/dan_manual_test/014_should_fail_trailing_spaces.yaml"
+  },
+  "config": {
+    "comparison_target": "014_should_fail_trailing_spaces",
+    "reader": "csv",
+    "csv": {
+      "header_rows": 1,
+      "trailer_rows": 0
+    }
+  },
+  "column_classifications": [
+    {
+      "name": "card_txn_id",
+      "classification": "STRICT",
+      "reason": null,
+      "tolerance": null,
+      "tolerance_type": null
+    },
+    {
+      "name": "card_id",
+      "classification": "STRICT",
+      "reason": null,
+      "tolerance": null,
+      "tolerance_type": null
+    },
+    {
+      "name": "customer_id",
+      "classification": "STRICT",
+      "reason": null,
+      "tolerance": null,
+      "tolerance_type": null
+    },
+    {
+      "name": "merchant_name",
+      "classification": "STRICT",
+      "reason": null,
+      "tolerance": null,
+      "tolerance_type": null
+    },
+    {
+      "name": "merchant_category_code",
+      "classification": "STRICT",
+      "reason": null,
+      "tolerance": null,
+      "tolerance_type": null
+    },
+    {
+      "name": "amount",
+      "classification": "STRICT",
+      "reason": null,
+      "tolerance": null,
+      "tolerance_type": null
+    },
+    {
+      "name": "txn_timestamp",
+      "classification": "STRICT",
+      "reason": null,
+      "tolerance": null,
+      "tolerance_type": null
+    },
+    {
+      "name": "authorization_status",
+      "classification": "STRICT",
+      "reason": null,
+      "tolerance": null,
+      "tolerance_type": null
+    },
+    {
+      "name": "as_of",
+      "classification": "STRICT",
+      "reason": null,
+      "tolerance": null,
+      "tolerance_type": null
+    }
+  ],
+  "summary": {
+    "row_count_lhs": 1656,
+    "row_count_rhs": 1656,
+    "match_count": 1640,
+    "mismatch_count": 16,
+    "match_percentage": 99.03381642512076,
+    "result": "FAIL",
+    "threshold": 100.0,
+    "line_break_mismatch": true
+  },
+  "header_comparison": [
+    {
+      "position": 0,
+      "lhs": "\"card_txn_id\",\"card_id\",\"customer_id\",\"merchant_name\",\"merchant_category_code\",\"amount\",\"txn_timestamp\",\"authorization_status\",\"as_of\"",
+      "rhs": "\"card_txn_id\",\"card_id\",\"customer_id\",\"merchant_name\",\"merchant_category_code\",\"amount\",\"txn_timestamp\",\"authorization_status\",\"as_of\"",
+      "match": true
+    }
+  ],
+  "trailer_comparison": [],
+  "mismatches": {
+    "schema_mismatches": null,
+    "hash_groups": [
+      {
+        "hash_value": "0bd2411e0bda8d58ad8da7a64f7c6d8b",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "66407| 10628| 2428| \"AMC Theaters\"| \"7832\"| \"225.03\"| \"2024-11-12 22:37:56\"| \"Approved\"| \"2024-11-12\""
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "0f6d2f3ce0e05fb5e2a1102a4c3c75a1",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "66198| 9191| 3191| \"Hilton Garden Inn\"| \"7011\"| \"140.74\"| \"2024-11-12 07:05:26\"| \"Approved\"| \"2024-11-12\""
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "10d0055cfba6b09e3a94ce573224c7d1",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "65753|8443|2443|Hilton Garden Inn|7011|58.92|2024-11-12 11:28:09|Declined|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "13f6c2cd09f10f0d0928035e82e36e81",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "65452|7917|1917|Home Depot|5200|422.63|2024-11-12 13:32:15|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "159fcb040b50cdfe3937a48eed5fa5ae",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "65346|7750|1750|McDonalds|5814|194.11|2024-11-12 10:04:43|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "238df6fec7f68469a6c42805ed256329",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "64940|3094|1094|Best Buy Electronics|5732|422.43|2024-11-12 06:27:40|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "3e26cf1b7be2d4fa6a4f006bb84be7a5",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "66405|10592|2392|McDonalds|5814|212.91|2024-11-12 21:16:47|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "4915bba7dc9549994a5ec414c35e5f62",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "66407|10628|2428|AMC Theaters|7832|225.03|2024-11-12 22:37:56|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "4e81aa5ebf8f5370547c8d30b5e39918",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "66397| 10493| 2293| \"Verizon Wireless\"| \"4814\"| \"379.36\"| \"2024-11-12 09:29:19\"| \"Approved\"| \"2024-11-12\""
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "58c47466e6a66ee6b66ae7c854d5b928",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "66274| 9640| 1440| \"AT&T Mobility\"| \"4814\"| \"63.94\"| \"2024-11-12 11:39:17\"| \"Approved\"| \"2024-11-12\""
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "6af9a281ce23f9d31c35b8102754df58",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "66098|9018|3018|Gap Clothing|5691|454.37|2024-11-12 06:50:00|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "717592e0326579ee5eea361a675ad4bc",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "66005|8870|2870|Target|5311|356.05|2024-11-12 16:15:10|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "7196342734e8930ebf3ee2b71ee3950a",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "65174|7439|1439|Delta Airlines|4511|138.74|2024-11-12 16:32:37|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "7976c91ecd10a21cd1fe388df479ab52",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "65174| 7439| 1439| \"Delta Airlines\"| \"4511\"| \"138.74\"| \"2024-11-12 16:32:37\"| \"Approved\"| \"2024-11-12\""
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "7c77b6031bdb5485f39ec24ee55687e0",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "65098|7294|1294|Starbucks|5814|54.02|2024-11-12 20:21:37|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "7d7f5a861f1a6d9ba59a4d6c3e81ff42",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "66098| 9018| 3018| \"Gap Clothing\"| \"5691\"| \"454.37\"| \"2024-11-12 06:50:00\"| \"Approved\"| \"2024-11-12\""
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "7e0f27e21806e7bdb47e17c263a24669",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "66005| 8870| 2870| \"Target\"| \"5311\"| \"356.05\"| \"2024-11-12 16:15:10\"| \"Approved\"| \"2024-11-12\""
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "8a06426e98e1780406d48c77f878b711",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "66405| 10592| 2392| \"McDonalds\"| \"5814\"| \"212.91\"| \"2024-11-12 21:16:47\"| \"Approved\"| \"2024-11-12\""
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "8b30504915cc11a0bcce69e9254802b8",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "65346| 7750| 1750| \"McDonalds\"| \"5814\"| \"194.11\"| \"2024-11-12 10:04:43\"| \"Approved\"| \"2024-11-12\""
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "8b8887c34d84139f232b9d1c0fa105db",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "65452| 7917| 1917| \"Home Depot\"| \"5200\"| \"422.63\"| \"2024-11-12 13:32:15\"| \"Approved\"| \"2024-11-12\""
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "9437b8fcd21bfebafd558a2e4168f491",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "65390| 7817| 1817| \"United Airlines\"| \"4511\"| \"394.43\"| \"2024-11-12 22:18:11\"| \"Approved\"| \"2024-11-12\""
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "94bea4c28267ffd5fcd6f0e7c7ce6bd1",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "65067| 7260| 1260| \"Home Depot\"| \"5200\"| \"122.16\"| \"2024-11-12 08:23:32\"| \"Approved\"| \"2024-11-12\""
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "a1a5f77a085f68f89b41bbe5e86288d4",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "65098| 7294| 1294| \"Starbucks\"| \"5814\"| \"54.02\"| \"2024-11-12 20:21:37\"| \"Approved\"| \"2024-11-12\""
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "ab43809b410e39048496c26e8a8d4506",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "65067|7260|1260|Home Depot|5200|122.16|2024-11-12 08:23:32|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "b447c0a089332b528d60b2041faedb2a",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "65390|7817|1817|United Airlines|4511|394.43|2024-11-12 22:18:11|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "c7622c1cc17b0fa835600309d25f6e14",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "64940| 3094| 1094| \"Best Buy Electronics\"| \"5732\"| \"422.43\"| \"2024-11-12 06:27:40\"| \"Approved\"| \"2024-11-12\""
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "c97a6213156a878d05b92a793b21ed88",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "65753| 8443| 2443| \"Hilton Garden Inn\"| \"7011\"| \"58.92\"| \"2024-11-12 11:28:09\"| \"Declined\"| \"2024-11-12\""
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "cd842666628ddd19222189b97394ab24",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "66274|9640|1440|AT&T Mobility|4814|63.94|2024-11-12 11:39:17|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "df0a67a94c0cc1aa69fbf890b7581d14",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "66198|9191|3191|Hilton Garden Inn|7011|140.74|2024-11-12 07:05:26|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "e06550869e2a6f97aee8135a6a00224c",
+        "lhs_count": 0,
+        "rhs_count": 1,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "rhs",
+            "content": "65117| 7331| 1331| \"United Airlines\"| \"4511\"| \"309.44\"| \"2024-11-12 13:58:51\"| \"Approved\"| \"2024-11-12\""
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "f34bbcdcb33a08f539e4815a0d0a07b3",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "65117|7331|1331|United Airlines|4511|309.44|2024-11-12 13:58:51|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      },
+      {
+        "hash_value": "f9026a3664f99874a70ae638b2745196",
+        "lhs_count": 1,
+        "rhs_count": 0,
+        "status": "COUNT_MISMATCH",
+        "matched_count": 0,
+        "surplus_rows": [
+          {
+            "side": "lhs",
+            "content": "66397|10493|2293|Verizon Wireless|4814|379.36|2024-11-12 09:29:19|Approved|2024-11-12"
+          }
+        ],
+        "fuzzy_failures": []
+      }
+    ],
+    "correlation": {
+      "correlated_pairs": [],
+      "uncorrelated_lhs": [
+        "64940|3094|1094|Best Buy Electronics|5732|422.43|2024-11-12 06:27:40|Approved|2024-11-12",
+        "65067|7260|1260|Home Depot|5200|122.16|2024-11-12 08:23:32|Approved|2024-11-12",
+        "65098|7294|1294|Starbucks|5814|54.02|2024-11-12 20:21:37|Approved|2024-11-12",
+        "65117|7331|1331|United Airlines|4511|309.44|2024-11-12 13:58:51|Approved|2024-11-12",
+        "65174|7439|1439|Delta Airlines|4511|138.74|2024-11-12 16:32:37|Approved|2024-11-12",
+        "65346|7750|1750|McDonalds|5814|194.11|2024-11-12 10:04:43|Approved|2024-11-12",
+        "65390|7817|1817|United Airlines|4511|394.43|2024-11-12 22:18:11|Approved|2024-11-12",
+        "65452|7917|1917|Home Depot|5200|422.63|2024-11-12 13:32:15|Approved|2024-11-12",
+        "65753|8443|2443|Hilton Garden Inn|7011|58.92|2024-11-12 11:28:09|Declined|2024-11-12",
+        "66005|8870|2870|Target|5311|356.05|2024-11-12 16:15:10|Approved|2024-11-12",
+        "66098|9018|3018|Gap Clothing|5691|454.37|2024-11-12 06:50:00|Approved|2024-11-12",
+        "66198|9191|3191|Hilton Garden Inn|7011|140.74|2024-11-12 07:05:26|Approved|2024-11-12",
+        "66274|9640|1440|AT&T Mobility|4814|63.94|2024-11-12 11:39:17|Approved|2024-11-12",
+        "66397|10493|2293|Verizon Wireless|4814|379.36|2024-11-12 09:29:19|Approved|2024-11-12",
+        "66405|10592|2392|McDonalds|5814|212.91|2024-11-12 21:16:47|Approved|2024-11-12",
+        "66407|10628|2428|AMC Theaters|7832|225.03|2024-11-12 22:37:56|Approved|2024-11-12"
+      ],
+      "uncorrelated_rhs": [
+        "64940| 3094| 1094| \"Best Buy Electronics\"| \"5732\"| \"422.43\"| \"2024-11-12 06:27:40\"| \"Approved\"| \"2024-11-12\"",
+        "65067| 7260| 1260| \"Home Depot\"| \"5200\"| \"122.16\"| \"2024-11-12 08:23:32\"| \"Approved\"| \"2024-11-12\"",
+        "65098| 7294| 1294| \"Starbucks\"| \"5814\"| \"54.02\"| \"2024-11-12 20:21:37\"| \"Approved\"| \"2024-11-12\"",
+        "65117| 7331| 1331| \"United Airlines\"| \"4511\"| \"309.44\"| \"2024-11-12 13:58:51\"| \"Approved\"| \"2024-11-12\"",
+        "65174| 7439| 1439| \"Delta Airlines\"| \"4511\"| \"138.74\"| \"2024-11-12 16:32:37\"| \"Approved\"| \"2024-11-12\"",
+        "65346| 7750| 1750| \"McDonalds\"| \"5814\"| \"194.11\"| \"2024-11-12 10:04:43\"| \"Approved\"| \"2024-11-12\"",
+        "65390| 7817| 1817| \"United Airlines\"| \"4511\"| \"394.43\"| \"2024-11-12 22:18:11\"| \"Approved\"| \"2024-11-12\"",
+        "65452| 7917| 1917| \"Home Depot\"| \"5200\"| \"422.63\"| \"2024-11-12 13:32:15\"| \"Approved\"| \"2024-11-12\"",
+        "65753| 8443| 2443| \"Hilton Garden Inn\"| \"7011\"| \"58.92\"| \"2024-11-12 11:28:09\"| \"Declined\"| \"2024-11-12\"",
+        "66005| 8870| 2870| \"Target\"| \"5311\"| \"356.05\"| \"2024-11-12 16:15:10\"| \"Approved\"| \"2024-11-12\"",
+        "66098| 9018| 3018| \"Gap Clothing\"| \"5691\"| \"454.37\"| \"2024-11-12 06:50:00\"| \"Approved\"| \"2024-11-12\"",
+        "66198| 9191| 3191| \"Hilton Garden Inn\"| \"7011\"| \"140.74\"| \"2024-11-12 07:05:26\"| \"Approved\"| \"2024-11-12\"",
+        "66274| 9640| 1440| \"AT&T Mobility\"| \"4814\"| \"63.94\"| \"2024-11-12 11:39:17\"| \"Approved\"| \"2024-11-12\"",
+        "66397| 10493| 2293| \"Verizon Wireless\"| \"4814\"| \"379.36\"| \"2024-11-12 09:29:19\"| \"Approved\"| \"2024-11-12\"",
+        "66405| 10592| 2392| \"McDonalds\"| \"5814\"| \"212.91\"| \"2024-11-12 21:16:47\"| \"Approved\"| \"2024-11-12\"",
+        "66407| 10628| 2428| \"AMC Theaters\"| \"7832\"| \"225.03\"| \"2024-11-12 22:37:56\"| \"Approved\"| \"2024-11-12\""
+      ]
+    }
+  },
+  "attestation": "Output equivalence certifies equivalence to the original, NOT correctness in an absolute sense. If the original has a bug and the rewrite faithfully reproduces it, Proofmark reports PASS."
+}

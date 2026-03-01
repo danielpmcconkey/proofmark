@@ -1,0 +1,5 @@
+comparison_target: 003_should_fail_bad_mcc
+reader: csv
+csv:
+  header_rows: 1
+  trailer_rows: 0

@@ -1,0 +1,2 @@
+comparison_target: 017_should_fail_data_mutation
+reader: parquet
