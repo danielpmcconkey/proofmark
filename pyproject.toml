@@ -15,6 +15,9 @@ dev = [
     "pytest>=7.0",
     "pytest-cov>=4.0",
 ]
+queue = [
+    "psycopg2-binary>=2.9",
+]
 
 [build-system]
 requires = ["setuptools>=68.0"]
@@ -29,4 +32,5 @@ markers = [
     "csv: requires CSV fixtures",
     "slow: tests with large fixture files",
     "cli: end-to-end CLI invocation tests",
+    "queue: requires PostgreSQL for queue runner tests",
 ]

@@ -1,11 +1,11 @@
 # Proofmark --- Test Architecture and BDD Scenarios
 
-**Version:** 2.2
-**Date:** 2026-02-28
+**Version:** 2.3
+**Date:** 2026-03-06
 **Status:** Draft --- Pending Dan's Review + Adversarial Review
 **Preceding Artifact:** BRD v3.1 (FSD audit revision, 2026-02-28)
 **Next Artifact:** Adversarial review of this document, then test data management
-**Revision:** v2.2 — Added 6 scenarios from Round 2 cross-document audit: null+FUZZY handling (2), non-numeric FUZZY data (1), threshold range validation (2), negative tolerance validation (1). Now 66 scenarios.
+**Revision:** v2.3 — Added queue runner integration test coverage (Part 3). 12 integration tests across 5 test classes against live PostgreSQL. 66 BDD scenarios unchanged.
 
 ---
 
@@ -29,6 +29,7 @@ Tests are organized by **feature area**, not by pipeline stage or reader type. E
 | `cli` | 12 | BR-12.1 through BR-12.13 | Exit codes, --left/--right/--output paths, config flag |
 | `config_validation` | 6 | BR-6.1 through BR-6.8 | YAML parsing, required fields, schema enforcement |
 | `row_count` | 4 (Step 6), 11 | BR-4.18 through BR-4.20, BR-11.17 | Row count mismatch detection |
+| `queue_runner` | FSD Section 11 | FSD-11.1 through FSD-11.13 | PostgreSQL queue runner: init, claim, mark, workers, SKIP LOCKED |
 
 This maps cleanly to a directory structure under `tests/`:
 
@@ -51,6 +52,7 @@ tests/
     test_cli.py
     test_config_validation.py
     test_row_count.py
+    test_queue.py                    # Queue runner integration tests (requires PostgreSQL)
 ```
 
 ### 1.2 Test Fixtures
@@ -209,7 +211,7 @@ Every BDD scenario below includes `[BR-x.x]` references to specific BRD v3 requi
 | 11 Report Output | report_output | 9 |
 | 12 CLI Interface | cli | 5 |
 
-Total: 66 BDD scenarios across 12 feature areas.
+Total: 66 BDD scenarios across 12 feature areas, plus 12 integration tests for the queue runner (Part 3).
 
 ### 1.5 Match Percentage Formula
 
@@ -259,6 +261,7 @@ FAIL is anything else (BR-11.26). FUZZY tolerance violations are first-class mis
 @pytest.mark.csv           # Requires CSV fixtures
 @pytest.mark.slow          # Tests with large fixture files (run separately in CI)
 @pytest.mark.cli           # End-to-end CLI invocation tests
+@pytest.mark.queue         # Requires PostgreSQL for queue runner tests
 ```
 
 **conftest.py patterns:**
@@ -1309,3 +1312,72 @@ The following are out of scope per `Documentation/BusinessRequirements/out-of-sc
 - CSV dialect configuration (delimiter, quote char, escape char) (BR-14.1)
 - Dry-run mode (BR-12.12)
 - CLI flags that override config values (BR-12.13)
+
+---
+
+## Part 3: Queue Runner Integration Tests
+
+Queue runner tests live in `test_queue.py` and are **integration tests**, not BDD scenarios. They require a live PostgreSQL instance and are skipped automatically when the database is unreachable. They do not follow the BDD scenario numbering from Part 2 because the queue runner is operational infrastructure, not a business requirement.
+
+### 3.1 Test Infrastructure
+
+**Database configuration:**
+- DSN: controlled by `PROOFMARK_TEST_DSN` environment variable. Falls back to the ATC dev database (`host=172.18.0.1 dbname=atc user=claude password=claude`).
+- Test table: `control.proofmark_test_queue` — isolated from any production queue table.
+- `pytest.importorskip("psycopg2")` — skips the entire file if `psycopg2` is not installed.
+- `@skip_no_db` marker — skips individual test classes if PostgreSQL is not reachable at test time.
+
+**Test data:** Queue tests use existing comparison fixtures (`csv/simple_match/` + `configs/csv_simple.yaml`) for tasks that should succeed. Invalid paths (e.g., `/nonexistent/config.yaml`) are used for tasks that should fail.
+
+**Setup/teardown:** Each test class drops and recreates the test table in `setup_method`. This ensures complete isolation between tests — no leftover state from prior runs.
+
+### 3.2 Test Classes and Coverage
+
+| Test Class | Tests | What It Covers | FSD |
+|------------|-------|---------------|-----|
+| `TestInitDb` | 2 | Table creation, idempotent re-creation | FSD-11.5, FSD-11.10 |
+| `TestClaimTask` | 4 | Claim pending task, returns None when empty, skips Running tasks, FIFO ordering | FSD-11.7 |
+| `TestMarkResults` | 2 | `mark_succeeded` stores report + result, `mark_failed` stores error message | FSD-11.9, FSD-11.12 |
+| `TestWorkerLoop` | 3 | Single task processing, bad config handling (Failed status), multi-task sequential processing | FSD-11.6, FSD-11.9, FSD-11.12 |
+| `TestSkipLocked` | 1 | 3 concurrent workers processing 6 tasks — no double-claims, all tasks processed exactly once | FSD-11.7 |
+
+**Total: 12 integration tests across 5 test classes.**
+
+### 3.3 Key Assertions
+
+**`TestInitDb`:**
+- `test_creates_table`: Queries `information_schema.columns` to verify the table exists with expected columns (`task_id`, `config_path`, `status`, `result_json`).
+- `test_idempotent`: Calls `init_db()` twice — second call must not raise (uses `CREATE TABLE IF NOT EXISTS`).
+
+**`TestClaimTask`:**
+- `test_claims_pending_task`: Inserts a task, claims it, verifies returned task matches, confirms DB status is `Running`.
+- `test_returns_none_when_empty`: Claims from empty table, asserts `None`.
+- `test_skips_running_tasks`: Claims a task (transitions to `Running`), attempts a second claim, asserts `None`.
+- `test_fifo_order`: Inserts two tasks, claims one, asserts the first-inserted task was claimed.
+
+**`TestMarkResults`:**
+- `test_mark_succeeded`: Claims a task, calls `mark_succeeded()` with a mock report, verifies `status = 'Succeeded'`, `result = 'PASS'`, and `result_json` contains the full report.
+- `test_mark_failed`: Claims a task, calls `mark_failed()` with an error string, verifies `status = 'Failed'` and `error_message` is populated.
+
+**`TestWorkerLoop`:**
+- `test_processes_single_task`: Starts one worker thread, inserts one task, polls until completion, asserts `Succeeded` with `result = 'PASS'` and `result_json` populated.
+- `test_handles_bad_config`: Inserts a task with a nonexistent config path, verifies worker marks it `Failed` with an error message.
+- `test_processes_multiple_tasks`: Inserts 3 tasks, starts one worker, waits for all to reach `Succeeded`.
+
+**`TestSkipLocked`:**
+- `test_no_double_claim`: Inserts 6 tasks, starts 3 concurrent worker threads, waits for all 6 to complete. Asserts all 6 are `Succeeded` and 0 are `Running` (no stuck tasks from race conditions). This is the integration-level proof that `FOR UPDATE SKIP LOCKED` works correctly under concurrent load.
+
+### 3.4 Running Queue Tests
+
+Queue tests are excluded from default test runs when PostgreSQL is unreachable (via `skip_no_db`). To run them explicitly:
+
+```bash
+# With default DSN (ATC dev database)
+pytest tests/test_queue.py -v
+
+# With custom DSN
+PROOFMARK_TEST_DSN="host=localhost dbname=testdb user=me" pytest tests/test_queue.py -v
+
+# Skip queue tests even when DB is available
+pytest --ignore=tests/test_queue.py
+```

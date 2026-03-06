@@ -1,10 +1,10 @@
 # Proofmark Functional Specification Document
 
-**Version:** 1.1
-**Date:** 2026-02-28
+**Version:** 1.2
+**Date:** 2026-03-06
 **Status:** Draft — Pending Dan's Approval
-**Upstream:** BRD v3.1 (128 BR IDs, audit-revised), Test Architecture v2.2 (66 BDD scenarios)
-**Revision:** v1.1 — FSD audit corrections (FUZZY-as-mismatch, match_count single-counted, null-safe sort, threshold integer math, tag count fix, and other audit findings)
+**Upstream:** BRD v3.1 (128 BR IDs, audit-revised), Test Architecture v2.3 (66 BDD scenarios + 12 queue integration tests)
+**Revision:** v1.3 — Added Section 12 (Vendor Build: CSV Format Comparison Gap): two-layer comparison architecture for production, MFT delivery rationale, format-vs-data distinction, 5 new FSD tags (FSD-12.1–12.5). Prior: v1.2 added Section 11 (Queue Runner)
 
 ---
 
@@ -46,6 +46,8 @@ CLI args
 ```
 proofmark/
 ├── pyproject.toml
+├── sql/
+│   └── queue_schema.sql         # Reference DDL for the queue table
 ├── src/
 │   └── proofmark/
 │       ├── __init__.py          # Package init, __version__
@@ -58,6 +60,7 @@ proofmark/
 │       │   ├── parquet.py       # ParquetReader
 │       │   └── csv_reader.py    # CsvReader (named to avoid stdlib collision)
 │       ├── pipeline.py          # Orchestrator: wires all modules together
+│       ├── queue.py             # PostgreSQL queue runner (optional dependency)
 │       ├── schema.py            # Schema validation (column count/name/type)
 │       ├── hasher.py            # Column exclusion, value concat, MD5 hashing
 │       ├── diff.py              # Hash grouping, multiset comparison
@@ -77,6 +80,7 @@ proofmark/
 │   ├── test_correlator.py       # Mismatch correlator tests
 │   ├── test_report.py           # Report generation tests
 │   ├── test_pipeline.py         # End-to-end pipeline tests
+│   ├── test_queue.py            # Queue runner integration tests (requires PostgreSQL)
 │   └── fixtures/                # (existing — 97 fixtures)
 └── Documentation/               # (existing)
 ```
@@ -103,16 +107,21 @@ dev = [
     "pytest>=7.0",
     "pytest-cov>=4.0",
 ]
+queue = [
+    "psycopg2-binary>=2.9",
+]
 
 [build-system]
 requires = ["setuptools>=68.0"]
-build-backend = "setuptools.backends._legacy:_Backend"
+build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 where = ["src"]
 ```
 
 **FSD-3.1:** Minimal dependency footprint. `pyarrow` for parquet reading (no alternative). `pyyaml` for config parsing. No pandas — list-of-dicts is sufficient for a comparison tool and avoids a heavy transitive dependency. Standard library covers everything else (`hashlib`, `csv`, `json`, `argparse`, `pathlib`).
+
+**FSD-3.2:** `psycopg2-binary` is an optional dependency under the `[queue]` extra. It is only required for the `proofmark serve` subcommand. The core comparison pipeline has no PostgreSQL dependency. Install with `pip install proofmark[queue]`.
 
 ---
 
@@ -313,9 +322,10 @@ def main() -> None:
 **FSD-5.1.1 [BR-12.1–4]:** CLI signature:
 ```
 proofmark compare --config <path> --left <path> --right <path> [--output <path>]
+proofmark serve --db <dsn> [--table <name>] [--workers <n>] [--poll-interval <s>] [--init-db]
 ```
 
-The `compare` subcommand is the only subcommand in the MVP. It exists for forward compatibility.
+The `compare` subcommand runs a single comparison (the core MVP workflow). The `serve` subcommand starts the PostgreSQL queue runner (see Section 11).
 
 | Flag | Required | Description | BR | FSD |
 |------|----------|-------------|-----|-----|
@@ -323,6 +333,16 @@ The `compare` subcommand is the only subcommand in the MVP. It exists for forwar
 | `--left` | Yes | LHS path (file for CSV, directory for parquet) | BR-12.2 | FSD-5.1.3 |
 | `--right` | Yes | RHS path (same semantics as `--left`) | BR-12.3 | FSD-5.1.4 |
 | `--output` | No | Output file path. Omitted → stdout | BR-12.4 | FSD-5.1.5 |
+
+**`serve` subcommand flags:**
+
+| Flag | Required | Default | Description | FSD |
+|------|----------|---------|-------------|-----|
+| `--db` | Yes | — | PostgreSQL connection string (libpq DSN format) | FSD-11.1 |
+| `--table` | No | `comparison_queue` | Queue table name (may include schema prefix) | FSD-11.2 |
+| `--workers` | No | 5 | Number of parallel worker threads | FSD-11.3 |
+| `--poll-interval` | No | 5 | Seconds to wait between polls when queue is empty | FSD-11.4 |
+| `--init-db` | No | false | Create the queue table if it doesn't exist | FSD-11.5 |
 
 **FSD-5.1.6 [BR-12.6–8]:** Exit codes:
 
@@ -346,7 +366,9 @@ The `compare` subcommand is the only subcommand in the MVP. It exists for forwar
 - Schema mismatch → the pipeline returns a FAIL report (not an exception). Exit 1.
 - Unexpected exceptions → print to stderr, exit 2.
 
-**FSD-5.1.12 [BR-12.10–13]:** Not supported in MVP: no verbosity flags, no batch mode, no dry-run, no CLI overrides of config values.
+**FSD-5.1.12 [BR-12.10–13]:** Not supported in MVP: no verbosity flags, no dry-run, no CLI overrides of config values.
+
+**FSD-5.1.13:** The `serve` subcommand imports `psycopg2` lazily. If the `[queue]` extra is not installed, the import fails and the CLI prints a descriptive error message to stderr and exits with code 2. The core `compare` subcommand is unaffected.
 
 ---
 
@@ -1353,6 +1375,203 @@ This FSD advances the following TAR register items:
 
 ---
 
+## 11. Queue Runner — `queue.py`
+
+The queue runner is a PostgreSQL-backed task processing system that enables parallel execution of many comparison tasks. It exists to support operational scenarios (like POC validation runs across dozens of jobs and dates) where invoking `proofmark compare` once per task is operationally cumbersome.
+
+The queue runner does NOT change the core comparison pipeline. Each task calls the existing stateless `pipeline.run()` function. The queue is plumbing, not logic.
+
+### 11.1 Design Principles
+
+| Principle | Description | FSD |
+|-----------|-------------|-----|
+| Optional dependency | `psycopg2-binary` is not a core requirement. Install via `pip install proofmark[queue]` | FSD-3.2 |
+| Stateless workers | Workers call `pipeline.run()` — same function the CLI calls. No queue-specific comparison logic | FSD-11.6 |
+| Race-condition-free claiming | `FOR UPDATE SKIP LOCKED` ensures no task is processed twice, even with many parallel workers | FSD-11.7 |
+| Operator-controlled lifecycle | The runner does not self-terminate. The operator starts it, and the operator kills it (SIGINT/SIGTERM) | FSD-11.8 |
+| Fail-safe | A task that throws an exception is marked `Failed` with the error message stored. The worker continues to the next task | FSD-11.9 |
+
+### 11.2 Queue Table Schema
+
+The reference DDL lives at `sql/queue_schema.sql`. The same schema is embedded in `queue.py` for `--init-db` convenience.
+
+```sql
+CREATE TABLE IF NOT EXISTS comparison_queue (
+    task_id       SERIAL PRIMARY KEY,
+    config_path   TEXT NOT NULL,
+    lhs_path      TEXT NOT NULL,
+    rhs_path      TEXT NOT NULL,
+    job_key       TEXT,                -- optional grouping key for agent queries
+    date_key      DATE,                -- optional date key for agent queries
+    status        VARCHAR(20) NOT NULL DEFAULT 'Pending',
+    result        VARCHAR(10),         -- 'PASS' or 'FAIL' (extracted from report)
+    started_at    TIMESTAMP,
+    completed_at  TIMESTAMP,
+    result_json   JSONB,               -- full comparison report
+    error_message TEXT,
+    created_at    TIMESTAMP DEFAULT NOW()
+);
+```
+
+**FSD-11.10:** Column semantics:
+
+| Column | Purpose |
+|--------|---------|
+| `task_id` | Auto-incrementing primary key. Determines FIFO ordering |
+| `config_path` | Absolute path to the YAML config file |
+| `lhs_path` | Absolute path to the LHS input (file or directory) |
+| `rhs_path` | Absolute path to the RHS input (file or directory) |
+| `job_key` | Optional. Logical grouping key (e.g., ETL job name). For query convenience, not used by the runner |
+| `date_key` | Optional. Date associated with the comparison (e.g., run date). For query convenience, not used by the runner |
+| `status` | Task lifecycle state: `Pending` → `Running` → `Succeeded` or `Failed` |
+| `result` | Convenience extraction of `report.summary.result` (`PASS` or `FAIL`). Only populated on `Succeeded` |
+| `started_at` | Timestamp when the worker claimed the task |
+| `completed_at` | Timestamp when the task finished (success or failure) |
+| `result_json` | Full comparison report as JSONB. Only populated on `Succeeded` |
+| `error_message` | Exception type and message. Only populated on `Failed` |
+| `created_at` | Timestamp of task insertion |
+
+**FSD-11.11:** Indexes:
+- `idx_{table}_status` on `status` — drives the task claiming query.
+- `idx_{table}_keys` on `(job_key, date_key)` — supports operator queries for results by job and date.
+
+### 11.3 Task Claiming — `FOR UPDATE SKIP LOCKED`
+
+**FSD-11.7:** The claim query is the critical concurrency mechanism:
+
+```sql
+UPDATE {table}
+SET status = 'Running', started_at = NOW()
+WHERE task_id = (
+    SELECT task_id FROM {table}
+    WHERE status = 'Pending'
+    ORDER BY task_id
+    FOR UPDATE SKIP LOCKED
+    LIMIT 1
+)
+RETURNING task_id, config_path, lhs_path, rhs_path;
+```
+
+**How it works:**
+1. The inner `SELECT` finds the oldest `Pending` task.
+2. `FOR UPDATE` acquires a row-level lock.
+3. `SKIP LOCKED` means if another worker already locked that row, skip it and take the next one. No blocking, no retries, no double-claims.
+4. The outer `UPDATE` atomically sets `status = 'Running'` and `started_at`.
+5. `RETURNING` gives the worker the task details in the same round-trip.
+
+This pattern is PostgreSQL-native and requires no advisory locks, no separate lock tables, and no application-level retry loops.
+
+### 11.4 Worker Lifecycle
+
+**FSD-11.12:** Each worker runs in a daemon thread. The worker loop:
+
+1. Call `claim_task()`. If a task is returned, process it immediately.
+2. Call `pipeline.run()` with the task's `config_path`, `lhs_path`, `rhs_path`.
+3. On success: call `mark_succeeded()` — stores the full report as JSONB and extracts `result` (PASS/FAIL) for the convenience column.
+4. On exception: call `mark_failed()` — stores `"{ExceptionType}: {message}"` in `error_message`.
+5. If `mark_failed()` itself fails (e.g., database unreachable), log the error and continue.
+6. If no task was claimed (queue empty), wait `poll_interval` seconds before trying again.
+7. Between tasks (when one was found), immediately check for the next — no sleep.
+8. Repeat until `stop_event` is set.
+
+### 11.5 Serve Lifecycle
+
+**FSD-11.8:** The `serve()` function:
+
+1. Optionally runs `init_db()` if `--init-db` was passed.
+2. Verifies database connectivity by opening and closing a connection. Fails fast if the database is unreachable.
+3. Registers signal handlers for `SIGINT` and `SIGTERM` that set a shared `stop_event`.
+4. Spawns `N` daemon worker threads.
+5. Blocks the main thread until `stop_event` is set.
+6. On shutdown signal: sets `stop_event`, waits up to 30 seconds per thread for in-progress tasks to finish, then exits.
+
+The runner does NOT self-terminate when the queue is empty. It continues polling. The operator is responsible for deciding when to stop it.
+
+### 11.6 Logging
+
+**FSD-11.13:** The `serve` subcommand configures Python `logging` at `INFO` level with timestamped output. Log messages include:
+- Worker start/stop
+- Task claimed (worker ID, task ID)
+- Task completed (worker ID, task ID, result)
+- Task failed (worker ID, task ID, error)
+- Shutdown signal received
+- Runner start (worker count, poll interval, table name)
+
+### 11.7 Relationship to Core Pipeline
+
+**FSD-11.6:** The queue runner is a thin orchestration layer. It does not modify, extend, or wrap the comparison pipeline. Each task is equivalent to:
+
+```python
+from proofmark.pipeline import run
+report = run(Path(config_path), Path(lhs_path), Path(rhs_path))
+```
+
+The same function the CLI's `compare` subcommand calls. If the pipeline changes, the queue runner automatically picks up the change. There is no queue-specific comparison logic.
+
+---
+
+## 12. Vendor Build: CSV Format Comparison Gap
+
+This section consolidates a critical architectural gap in the MVP that the production tool must address. Individual notes exist at FSD-6.10 (line breaks), FSD-5.2.15 (column validation), and BRD §14 / §17 (dialect specification). This section provides the full rationale and recommended architecture.
+
+### 12.1 The Problem
+
+CSV files produced by ETL jobs are delivered via MFT to downstream systems. We do not control those systems and cannot assume anything about their CSV parsers. A file that is data-equivalent but format-different (quoting style, escape characters, delimiter, date formatting, number formatting) may cause a production incident in a downstream system with a brittle parser.
+
+The MVP comparison pipeline parses CSV into a dataframe before comparing. This is necessary — EXCLUDED and FUZZY columns require parsed values to function. However, parsing destroys formatting information: `"375.67"` and `375.67` become the same parsed value. The pipeline cannot detect formatting differences in data rows.
+
+**FSD-12.1:** The MVP detects formatting differences in two narrow cases only:
+- **Header/trailer rows** are compared as raw strings (FSD-6.5, FSD-6.6). Quoting differences in headers ARE caught.
+- **Line break style** is compared at the file level before parsing (FSD-6.9). CRLF vs LF mismatches ARE caught, but mixed line breaks within a single file are not (FSD-6.10).
+
+**FSD-12.2:** The MVP does NOT detect formatting differences in data rows. This includes but is not limited to:
+- Quoting style (always-quoted vs minimal-quoting vs never-quoted)
+- Escape character differences (`\"` vs `""`)
+- Date format differences (`2024-11-12` vs `11/12/2024` vs `12-Nov-2024`)
+- Number format differences (`1234.56` vs `1,234.56`)
+- Null representation (`""` vs empty field vs `NULL` vs `\N`)
+
+These differences are invisible to the parsed data comparison because Python's CSV reader normalizes them before Proofmark sees the values.
+
+### 12.2 Why This Matters
+
+This is not an edge case. ETL rewrites routinely change CSV serialization libraries, and different libraries have different defaults for quoting, escaping, and formatting. A rewrite that produces data-equivalent but format-different output will get a PASS from the MVP — and may break a downstream system.
+
+**FSD-12.3:** Risk rating: **HIGH for production use with CSV targets.** The MVP's PASS on data-equivalent, format-different files is a false negative in the MFT delivery context.
+
+### 12.3 Recommended Production Architecture: Two-Layer Comparison
+
+**FSD-12.4:** The production tool should implement two independent comparison layers for CSV targets:
+
+**Layer 1 — Format/Dialect Comparison (pre-parse):**
+Before parsing either file, characterize the CSV dialect of each side independently:
+- Quoting style (all fields, minimal, none)
+- Quote character (`"`, `'`, etc.)
+- Escape character (`\`, `""`, etc.)
+- Delimiter (`,`, `|`, `\t`, etc.)
+- Line break style (CRLF, LF, mixed)
+- Null representation pattern
+- Date/number format patterns (sampled from data)
+
+Compare the two dialect characterizations. Any mismatch is a failure independent of data equivalence.
+
+**Layer 2 — Parsed Data Comparison (post-parse):**
+What Proofmark does today. Parse both files, apply EXCLUDED/FUZZY column logic, hash, diff, correlate, report.
+
+Both layers must pass for the comparison to pass. Layer 1 answers "are these files speaking the same CSV dialect?" Layer 2 answers "is the data equivalent?"
+
+### 12.4 Configuration Leverage
+
+**FSD-12.5:** The V1 source code is available during config authoring. The config for each comparison target should specify the expected CSV dialect — not detect it heuristically. The V1 ETL code tells you exactly what quoting rules, date formats, and delimiters it uses. Encode that in the comparison config, then verify both LHS and RHS conform to it.
+
+This converts dialect detection from a heuristic problem to a specification-conformance check, which is significantly more reliable.
+
+### 12.5 Relationship to BRD §14
+
+BRD §14 (CSV Dialect: Known Landmine) identifies the dialect problem and calls it out as a vendor build requirement. This section provides the architectural detail the vendor needs to implement it. The BRD requirement stands; this section extends it with the two-layer recommendation and the rationale for why parsed-only comparison is insufficient.
+
+---
+
 ## Appendix A: Test File Mapping
 
 **Note on test file organization:** The Test Architecture v2 organizes tests by **feature area** (12 areas, 12 test files). This FSD reorganizes tests by **module** (11 test files). This is a deliberate departure — unit tests target module contracts, not feature areas. Some scenarios appear in multiple test files because they are tested at both the unit level (testing a specific module's behavior) and the integration level (testing end-to-end pipeline behavior). This overlap is intentional multi-level testing, not duplication.
@@ -1372,19 +1591,20 @@ Each test file maps to one or more feature areas from the Test Architecture v2.2
 | `test_config.py` | config_validation | 53–63 | `configs/*` |
 | `test_cli.py` | cli | 48–52 | Various |
 | `test_pipeline.py` | (end-to-end) | 22–23, 29–33, 41–42, 44, 45 | `csv/crlf_vs_lf`, `csv/encoding_*`, `csv/null_*`, `parquet/threshold_*` |
+| `test_queue.py` | queue_runner | (integration, not BDD-numbered) | `csv/simple_match`, `configs/csv_simple.yaml` (+ live PostgreSQL) |
 
 ---
 
 ## Appendix B: FSD Tag Index
 
-Total FSD tags: 167
+Total FSD tags: 187
 
 | Range | Section | Count |
 |-------|---------|-------|
 | FSD-1.1–1.6 | Design Principles | 6 |
-| FSD-3.1 | Dependencies | 1 |
+| FSD-3.1–3.2 | Dependencies | 2 |
 | FSD-4.1–4.12 | Data Model | 12 |
-| FSD-5.1.1–5.1.12 | CLI | 12 |
+| FSD-5.1.1–5.1.13 | CLI | 13 |
 | FSD-5.2.1–5.2.15, 5.2.11a | Configuration | 16 |
 | FSD-5.3.1–5.3.19, 5.3.10a | Readers | 20 |
 | FSD-5.4.1–5.4.5 | Schema Validator | 5 |
@@ -1397,3 +1617,5 @@ Total FSD tags: 167
 | FSD-6.1–6.16 | Cross-Cutting | 16 |
 | FSD-7.1–7.10 | Report JSON Schema | 10 |
 | FSD-8.1–8.14 | Error Handling | 14 |
+| FSD-11.1–11.13 | Queue Runner | 13 |
+| FSD-12.1–12.5 | Vendor Build: CSV Format Gap | 5 |

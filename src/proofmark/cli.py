@@ -1,5 +1,6 @@
 """CLI entry point. [FSD-5.1]"""
 import argparse
+import logging
 import sys
 from pathlib import Path
 
@@ -34,7 +35,54 @@ def main() -> None:
         help="Output file path (default: stdout)",
     )
 
+    serve_parser = subparsers.add_parser(
+        "serve", help="Start the comparison queue runner",
+    )
+    serve_parser.add_argument(
+        "--db", required=True,
+        help="PostgreSQL connection string (e.g., 'host=localhost dbname=mydb user=me')",
+    )
+    serve_parser.add_argument(
+        "--table", default="comparison_queue",
+        help="Queue table name (default: comparison_queue)",
+    )
+    serve_parser.add_argument(
+        "--workers", type=int, default=5,
+        help="Number of parallel workers (default: 5)",
+    )
+    serve_parser.add_argument(
+        "--poll-interval", type=int, default=5,
+        help="Seconds between polls when queue is empty (default: 5)",
+    )
+    serve_parser.add_argument(
+        "--init-db", action="store_true",
+        help="Create the queue table if it doesn't exist",
+    )
+
     args = parser.parse_args()
+
+    if args.command == "serve":
+        try:
+            from proofmark.queue import serve
+        except ImportError:
+            print(
+                "Error: psycopg2 is required for the queue runner. "
+                "Install with: pip install proofmark[queue]",
+                file=sys.stderr,
+            )
+            sys.exit(2)
+        logging.basicConfig(
+            level=logging.INFO,
+            format="%(asctime)s [%(name)s] %(levelname)s: %(message)s",
+        )
+        serve(
+            dsn=args.db,
+            table=args.table,
+            workers=args.workers,
+            poll_interval=args.poll_interval,
+            do_init=args.init_db,
+        )
+        return
 
     if args.command != "compare":
         parser.print_help()
