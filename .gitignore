@@ -6,4 +6,6 @@ dist/
 build/
 .pytest_cache/
 *.egg
+.idea/
+.venv/
 CLAUDE.md

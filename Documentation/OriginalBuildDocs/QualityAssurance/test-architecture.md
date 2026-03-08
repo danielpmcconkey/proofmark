@@ -1,3 +1,5 @@
+> **Note:** This document was written 2026-02-28 during Proofmark's original build and is likely outdated. Retained for historical reference.
+
 # Proofmark --- Test Architecture and BDD Scenarios
 
 **Version:** 2.3
@@ -1322,7 +1324,7 @@ Queue runner tests live in `test_queue.py` and are **integration tests**, not BD
 ### 3.1 Test Infrastructure
 
 **Database configuration:**
-- DSN: controlled by `PROOFMARK_TEST_DSN` environment variable. Falls back to the ATC dev database (`host=172.18.0.1 dbname=atc user=claude password=claude`).
+- DSN: controlled by `PROOFMARK_TEST_DSN` environment variable. Falls back to `host=172.18.0.1 dbname=atc user=claude` with password from `ETL_DB_PASSWORD` env var.
 - Test table: `control.proofmark_test_queue` — isolated from any production queue table.
 - `pytest.importorskip("psycopg2")` — skips the entire file if `psycopg2` is not installed.
 - `@skip_no_db` marker — skips individual test classes if PostgreSQL is not reachable at test time.

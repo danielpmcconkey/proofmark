@@ -1,3 +1,5 @@
+> **Note:** This document was written 2026-02-28 during Proofmark's original build and is likely outdated. Retained for historical reference.
+
 # Proofmark — Business Requirements Document
 
 **Version:** 3.1

@@ -20,10 +20,10 @@ from proofmark.queue import (
     worker_loop,
 )
 
-# Use env var or default to the ATC dev database
+# Use env var or build from components (password from ETL_DB_PASSWORD)
 DSN = os.environ.get(
     "PROOFMARK_TEST_DSN",
-    "host=172.18.0.1 dbname=atc user=claude password=claude",
+    f"host=localhost dbname=atc user=claude password={os.environ.get('ETL_DB_PASSWORD', '')}",
 )
 TEST_TABLE = "control.proofmark_test_queue"
 

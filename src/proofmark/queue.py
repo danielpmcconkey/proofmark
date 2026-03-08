@@ -119,9 +119,43 @@ def mark_failed(dsn, table, task_id, error_msg):
         conn.close()
 
 
-def worker_loop(worker_id, dsn, table, poll_interval, stop_event):
-    """Worker loop: claim tasks, run comparisons, write results."""
+class _ActivityTracker:
+    """Thread-safe tracker for idle shutdown. Tracks how many workers are
+    actively processing tasks, and when the system last became fully idle."""
+
+    def __init__(self):
+        self._lock = threading.Lock()
+        self._active_count = 0
+        self._last_idle_at = time.monotonic()
+
+    def task_started(self):
+        with self._lock:
+            self._active_count += 1
+
+    def task_ended(self):
+        with self._lock:
+            self._active_count -= 1
+            if self._active_count == 0:
+                self._last_idle_at = time.monotonic()
+
+    def idle_seconds(self):
+        """Seconds since all workers became idle. Returns 0 if any worker
+        is currently processing a task."""
+        with self._lock:
+            if self._active_count > 0:
+                return 0.0
+            return time.monotonic() - self._last_idle_at
+
+
+def worker_loop(worker_id, dsn, table, poll_interval, stop_event,
+                activity=None, resolve_path=None):
+    """Worker loop: claim tasks, run comparisons, write results.
+
+    resolve_path: optional callable that expands path tokens
+                  (e.g. {ETL_ROOT}) to real values. Identity if None.
+    """
     label = f"worker-{worker_id}"
+    _resolve = resolve_path or (lambda p: p)
     logger.info("[%s] started", label)
 
     while not stop_event.is_set():
@@ -140,11 +174,14 @@ def worker_loop(worker_id, dsn, table, poll_interval, stop_event):
         task_id = task["task_id"]
         logger.info("[%s] claimed task %d", label, task_id)
 
+        if activity:
+            activity.task_started()
+
         try:
             report = run(
-                Path(task["config_path"]),
-                Path(task["lhs_path"]),
-                Path(task["rhs_path"]),
+                Path(_resolve(task["config_path"])),
+                Path(_resolve(task["lhs_path"])),
+                Path(_resolve(task["rhs_path"])),
             )
             mark_succeeded(dsn, table, task_id, report)
             result = report.get("summary", {}).get("result", "?")
@@ -158,16 +195,24 @@ def worker_loop(worker_id, dsn, table, poll_interval, stop_event):
                 logger.exception(
                     "[%s] failed to write error for task %d", label, task_id
                 )
+        finally:
+            if activity:
+                activity.task_ended()
 
         # No sleep between tasks — immediately check for next one
 
 
-def serve(dsn, table="comparison_queue", workers=5, poll_interval=5,
-          do_init=False):
-    """Start the queue runner: parent thread + N workers.
+def serve(config, do_init=False):
+    """Start the queue runner using centralised AppConfig.
 
-    Runs until SIGINT/SIGTERM. Does not self-terminate.
+    Runs until SIGINT/SIGTERM or idle shutdown threshold is reached.
     """
+    dsn = config.database.dsn
+    table = config.queue.table
+    workers = config.queue.workers
+    poll_interval = config.queue.poll_interval_seconds
+    idle_shutdown = config.queue.idle_shutdown_seconds
+
     if do_init:
         init_db(dsn, table)
 
@@ -176,6 +221,7 @@ def serve(dsn, table="comparison_queue", workers=5, poll_interval=5,
     conn.close()
 
     stop_event = threading.Event()
+    activity = _ActivityTracker()
 
     def handle_signal(signum, frame):
         logger.info("Received signal %d, shutting down...", signum)
@@ -189,21 +235,29 @@ def serve(dsn, table="comparison_queue", workers=5, poll_interval=5,
         t = threading.Thread(
             target=worker_loop,
             args=(i, dsn, table, poll_interval, stop_event),
+            kwargs={"activity": activity, "resolve_path": config.paths.resolve},
             daemon=True,
         )
         t.start()
         threads.append(t)
 
     logger.info(
-        "Queue runner started: %d workers, polling every %ds, table: %s",
-        workers, poll_interval, table,
+        "Queue runner started: %d workers, polling every %ds, "
+        "idle shutdown after %ds, table: %s",
+        workers, poll_interval, idle_shutdown, table,
     )
     logger.info("Send SIGINT (Ctrl+C) or SIGTERM to stop")
 
-    # Block until stop signal
+    # Block until stop signal or idle shutdown
     try:
         while not stop_event.is_set():
             stop_event.wait(1)
+            if activity.idle_seconds() >= idle_shutdown:
+                logger.info(
+                    "Idle shutdown: no tasks completed for %ds. Stopping.",
+                    idle_shutdown,
+                )
+                stop_event.set()
     except KeyboardInterrupt:
         stop_event.set()
 

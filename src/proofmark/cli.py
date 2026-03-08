@@ -39,20 +39,8 @@ def main() -> None:
         "serve", help="Start the comparison queue runner",
     )
     serve_parser.add_argument(
-        "--db", required=True,
-        help="PostgreSQL connection string (e.g., 'host=localhost dbname=mydb user=me')",
-    )
-    serve_parser.add_argument(
-        "--table", default="comparison_queue",
-        help="Queue table name (default: comparison_queue)",
-    )
-    serve_parser.add_argument(
-        "--workers", type=int, default=5,
-        help="Number of parallel workers (default: 5)",
-    )
-    serve_parser.add_argument(
-        "--poll-interval", type=int, default=5,
-        help="Seconds between polls when queue is empty (default: 5)",
+        "--settings", type=Path, default=None,
+        help="Path to YAML settings file (optional — sensible defaults built in)",
     )
     serve_parser.add_argument(
         "--init-db", action="store_true",
@@ -63,6 +51,7 @@ def main() -> None:
 
     if args.command == "serve":
         try:
+            from proofmark.app_config import load_app_config
             from proofmark.queue import serve
         except ImportError:
             print(
@@ -75,13 +64,8 @@ def main() -> None:
             level=logging.INFO,
             format="%(asctime)s [%(name)s] %(levelname)s: %(message)s",
         )
-        serve(
-            dsn=args.db,
-            table=args.table,
-            workers=args.workers,
-            poll_interval=args.poll_interval,
-            do_init=args.init_db,
-        )
+        config = load_app_config(args.settings)
+        serve(config=config, do_init=args.init_db)
         return
 
     if args.command != "compare":
