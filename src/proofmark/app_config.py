@@ -26,6 +26,10 @@ class PathSettings:
             self, "_etl_re_output",
             os.environ.get("ETL_RE_OUTPUT", ""),
         )
+        object.__setattr__(
+            self, "_etl_re_root",
+            os.environ.get("ETL_RE_ROOT", ""),
+        )
 
     @property
     def etl_root(self) -> str:
@@ -35,12 +39,17 @@ class PathSettings:
     def etl_re_output(self) -> str:
         return self._etl_re_output
 
+    @property
+    def etl_re_root(self) -> str:
+        return self._etl_re_root
+
     def resolve(self, raw_path: str) -> str:
-        """Replace {ETL_ROOT} and {ETL_RE_OUTPUT} tokens in a path string."""
+        """Replace path tokens with resolved values."""
         return (
             raw_path
             .replace("{ETL_ROOT}", self._etl_root)
             .replace("{ETL_RE_OUTPUT}", self._etl_re_output)
+            .replace("{ETL_RE_ROOT}", self._etl_re_root)
         )
 
 

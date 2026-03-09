@@ -10,7 +10,7 @@ All settings are frozen dataclasses. Environment variables are read once at cons
 
 ```python
 AppConfig
-  paths: PathSettings        # ETL_ROOT, ETL_RE_OUTPUT tokens
+  paths: PathSettings        # ETL_ROOT, ETL_RE_OUTPUT, ETL_RE_ROOT tokens
   database: DatabaseSettings # host, username, database, password
   queue: QueueSettings       # table, workers, poll interval, idle shutdown
 ```
@@ -27,10 +27,11 @@ Reads environment variables for path token expansion:
 |---|---|---|
 | `ETL_ROOT` | `paths.etl_root` | `{ETL_ROOT}` token in queue task paths |
 | `ETL_RE_OUTPUT` | `paths.etl_re_output` | `{ETL_RE_OUTPUT}` token in queue task paths |
+| `ETL_RE_ROOT` | `paths.etl_re_root` | `{ETL_RE_ROOT}` token in queue task paths |
 
 ### `paths.resolve(raw_path) -> str`
 
-Replaces `{ETL_ROOT}` and `{ETL_RE_OUTPUT}` tokens in a path string with the cached env var values. See [queue-runner.md](queue-runner.md) for how this is used.
+Replaces `{ETL_ROOT}`, `{ETL_RE_OUTPUT}`, and `{ETL_RE_ROOT}` tokens in a path string with the cached env var values. See [queue-runner.md](queue-runner.md) for how this is used.
 
 ## DatabaseSettings
 

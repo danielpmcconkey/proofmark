@@ -114,3 +114,4 @@ columns:
 | `ETL_DB_PASSWORD` | AppConfig (serve mode) | PostgreSQL password |
 | `ETL_ROOT` | PathSettings (serve mode) | Base path for `{ETL_ROOT}` token expansion |
 | `ETL_RE_OUTPUT` | PathSettings (serve mode) | Base path for `{ETL_RE_OUTPUT}` token expansion |
+| `ETL_RE_ROOT` | PathSettings (serve mode) | Base path for `{ETL_RE_ROOT}` token expansion |

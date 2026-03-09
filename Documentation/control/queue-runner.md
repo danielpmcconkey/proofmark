@@ -66,7 +66,7 @@ Each worker thread runs `worker_loop()` in an infinite loop:
 1. Try to claim a task.
 2. If no task: wait `poll_interval_seconds`, loop.
 3. If task claimed:
-   - Resolve path tokens (`{ETL_ROOT}`, `{ETL_RE_OUTPUT}`) via `PathSettings.resolve()`.
+   - Resolve path tokens (`{ETL_ROOT}`, `{ETL_RE_OUTPUT}`, `{ETL_RE_ROOT}`) via `PathSettings.resolve()`.
    - Run `pipeline.run()` with the resolved paths.
    - On success: `mark_succeeded()` stores the report.
    - On exception: `mark_failed()` stores the error message.
@@ -82,6 +82,7 @@ Queue task paths can contain tokens that are resolved at runtime:
 |---|---|---|
 | `{ETL_ROOT}` | `ETL_ROOT` env var | `/data/etl` |
 | `{ETL_RE_OUTPUT}` | `ETL_RE_OUTPUT` env var | `/data/rewrite/output` |
+| `{ETL_RE_ROOT}` | `ETL_RE_ROOT` env var | `/workspace` |
 
 This allows the same queue rows to work across environments without changing paths.
 
