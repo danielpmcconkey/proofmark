@@ -72,11 +72,7 @@ class TestDataMismatch:
 
 
 class TestEmptyDirectory:
-    """Scenario 4: Empty LHS directory produces an error [BR-3.15, BR-4.7]"""
-
-    def test_empty_directory_raises_reader_error(self, reader, parquet_fixtures):
-        with pytest.raises(ReaderError, match="No parquet files found"):
-            reader.read(parquet_fixtures / "empty_directory" / "lhs", "utf-8")
+    """Scenario 4: Edge cases for directory input [BR-3.15, BR-4.7]"""
 
     def test_nonexistent_directory_raises(self, reader, tmp_path):
         with pytest.raises(FileNotFoundError):

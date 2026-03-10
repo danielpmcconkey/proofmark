@@ -1,5 +1,6 @@
 """PostgreSQL-backed comparison queue runner."""
 
+import gc
 import json
 import logging
 import signal
@@ -177,6 +178,7 @@ def worker_loop(worker_id, dsn, table, poll_interval, stop_event,
         if activity:
             activity.task_started()
 
+        report = None
         try:
             report = run(
                 Path(_resolve(task["config_path"])),
@@ -186,9 +188,14 @@ def worker_loop(worker_id, dsn, table, poll_interval, stop_event,
             mark_succeeded(dsn, table, task_id, report)
             result = report.get("summary", {}).get("result", "?")
             logger.info("[%s] task %d completed: %s", label, task_id, result)
+            del report
+            gc.collect()
         except Exception as e:
             error_msg = f"{type(e).__name__}: {e}"
             logger.error("[%s] task %d failed: %s", label, task_id, error_msg)
+            if report is not None:
+                del report
+                gc.collect()
             try:
                 mark_failed(dsn, table, task_id, error_msg)
             except Exception:

@@ -49,11 +49,7 @@ class ParquetReader(BaseReader):
         }
 
         # Convert to list of dicts [FSD-5.3.8]
-        pydict = combined.to_pydict()
-        num_rows = combined.num_rows
-        rows: list[dict[str, Any]] = []
-        for i in range(num_rows):
-            rows.append({col: pydict[col][i] for col in column_names})
+        rows: list[dict[str, Any]] = combined.to_pylist()
 
         # Return with null CSV fields [FSD-5.3.9]
         return ReaderResult(

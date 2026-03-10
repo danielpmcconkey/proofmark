@@ -1,4 +1,5 @@
 """Mismatch correlator — unmatched row pairing by column similarity. [FSD-5.8]"""
+import heapq
 from dataclasses import dataclass
 
 from proofmark.diff import UnmatchedRow
@@ -37,9 +38,10 @@ def correlate(
     sorted_lhs = sorted(unmatched_lhs, key=lambda r: r.content)
     sorted_rhs = sorted(unmatched_rhs, key=lambda r: r.content)
 
-    # [FSD-5.8.3] Build similarity matrix
+    # [FSD-5.8.3] Build similarity scores, keeping only candidates above threshold
     num_cols = len(column_names) if column_names else 1
-    scores: list[tuple[float, int, int, list[str]]] = []
+    # Heap entries: (-score, i, j, differing) — negated score for max-heap via min-heap
+    heap: list[tuple[float, int, int, list[str]]] = []
 
     for i, lhs_row in enumerate(sorted_lhs):
         for j, rhs_row in enumerate(sorted_rhs):
@@ -51,17 +53,16 @@ def correlate(
                 else:
                     differing.append(col)
             score = matching / num_cols
-            scores.append((score, i, j, differing))
+            if score > 0.5:
+                heapq.heappush(heap, (-score, i, j, differing))
 
     # [FSD-5.8.4] Greedy pairing, highest score first
-    scores.sort(key=lambda x: (-x[0], x[1], x[2]))
     used_lhs: set[int] = set()
     used_rhs: set[int] = set()
     pairs: list[CorrelatedPair] = []
 
-    for score, i, j, differing in scores:
-        if score <= 0.5:
-            break
+    while heap:
+        neg_score, i, j, differing = heapq.heappop(heap)
         if i in used_lhs or j in used_rhs:
             continue
         pairs.append(CorrelatedPair(
