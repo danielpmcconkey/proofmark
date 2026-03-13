@@ -1,0 +1,4 @@
+comparison_target: card_transaction_daily_card_transaction_daily
+reader: csv
+csv:
+  trailer_rows: 1

@@ -1,0 +1,2 @@
+comparison_target: loan_portfolio_snapshot_loan_portfolio_snapshot
+reader: parquet

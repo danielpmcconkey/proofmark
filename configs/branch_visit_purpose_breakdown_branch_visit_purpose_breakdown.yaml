@@ -1,0 +1,4 @@
+comparison_target: branch_visit_purpose_breakdown_branch_visit_purpose_breakdown
+reader: csv
+csv:
+  trailer_rows: 1

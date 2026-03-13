@@ -1,0 +1,5 @@
+comparison_target: csv_standard
+reader: csv
+csv:
+  header_rows: 1
+  trailer_rows: 0

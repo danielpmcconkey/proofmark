@@ -1,0 +1,2 @@
+comparison_target: covered_transactions_covered_transactions
+reader: parquet

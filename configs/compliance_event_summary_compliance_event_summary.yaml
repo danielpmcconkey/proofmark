@@ -1,0 +1,4 @@
+comparison_target: compliance_event_summary_compliance_event_summary
+reader: csv
+csv:
+  trailer_rows: 1

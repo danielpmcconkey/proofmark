@@ -1,0 +1,4 @@
+comparison_target: overdraft_recovery_rate_overdraft_recovery_rate
+reader: csv
+csv:
+  trailer_rows: 1

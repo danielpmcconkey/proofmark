@@ -1,0 +1,4 @@
+comparison_target: credit_score_average_credit_score_average
+reader: csv
+csv:
+  trailer_rows: 1

@@ -1,0 +1,4 @@
+comparison_target: daily_transaction_summary_daily_transaction_summary
+reader: csv
+csv:
+  trailer_rows: 1

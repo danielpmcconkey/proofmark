@@ -20,6 +20,9 @@ class CorrelationResult:
     uncorrelated_rhs: list[str]
 
 
+MAX_UNMATCHED_FOR_CORRELATION = 100
+
+
 def correlate(
     unmatched_lhs: list[UnmatchedRow],
     unmatched_rhs: list[UnmatchedRow],
@@ -28,6 +31,16 @@ def correlate(
     """Pair unmatched rows by column similarity. [FSD-5.8.1 through FSD-5.8.7]"""
     # [FSD-5.8.1]
     if not unmatched_lhs or not unmatched_rhs:
+        return CorrelationResult(
+            correlated_pairs=[],
+            uncorrelated_lhs=[r.content for r in unmatched_lhs],
+            uncorrelated_rhs=[r.content for r in unmatched_rhs],
+        )
+
+    # Skip correlation if either side exceeds the cap — too many mismatches
+    # to correlate meaningfully, and the O(n*m) cost isn't worth it.
+    if (len(unmatched_lhs) > MAX_UNMATCHED_FOR_CORRELATION
+            or len(unmatched_rhs) > MAX_UNMATCHED_FOR_CORRELATION):
         return CorrelationResult(
             correlated_pairs=[],
             uncorrelated_lhs=[r.content for r in unmatched_lhs],

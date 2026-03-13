@@ -1,0 +1,4 @@
+comparison_target: executive_dashboard_executive_dashboard
+reader: csv
+csv:
+  trailer_rows: 1

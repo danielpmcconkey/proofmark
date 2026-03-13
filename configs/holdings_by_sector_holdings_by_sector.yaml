@@ -1,0 +1,5 @@
+comparison_target: holdings_by_sector_holdings_by_sector
+reader: csv
+csv:
+  header_rows: 1
+  trailer_rows: 1

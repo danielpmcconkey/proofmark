@@ -1,0 +1,2 @@
+comparison_target: customer_address_history_customer_address_history
+reader: parquet

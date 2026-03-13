@@ -1,0 +1,2 @@
+comparison_target: account_balance_snapshot_account_balance_snapshot
+reader: parquet

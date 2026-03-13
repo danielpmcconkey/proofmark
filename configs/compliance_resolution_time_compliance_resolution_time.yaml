@@ -1,0 +1,4 @@
+comparison_target: compliance_resolution_time_compliance_resolution_time
+reader: csv
+csv:
+  trailer_rows: 1

@@ -1,0 +1,5 @@
+comparison_target: fund_allocation_breakdown_fund_allocation_breakdown
+reader: csv
+csv:
+  header_rows: 1
+  trailer_rows: 1

@@ -1,0 +1,4 @@
+comparison_target: card_type_distribution_card_type_distribution
+reader: csv
+csv:
+  trailer_rows: 1

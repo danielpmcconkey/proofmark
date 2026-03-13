@@ -1,0 +1,5 @@
+comparison_target: preference_by_segment_preference_by_segment
+reader: csv
+csv:
+  header_rows: 1
+  trailer_rows: 1

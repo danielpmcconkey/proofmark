@@ -2,14 +2,14 @@
 
 Proofmark has two distinct configuration systems:
 
-1. **Comparison config** -- YAML file describing a single comparison (reader type, column classifications, thresholds). Used by both `compare` and `serve` modes.
+1. **Comparison config** -- YAML file describing a single comparison (reader type, column classifications, thresholds). Referenced by `config_path` in the queue table.
 2. **AppConfig** -- Serve-mode settings (database connection, queue parameters, path tokens). See [control/app-config.md](control/app-config.md).
 
 This document covers comparison config. For AppConfig, see the link above.
 
 ## Comparison Config (YAML)
 
-Each comparison task requires a YAML config file. This is the `--config` argument in CLI mode, or the `config_path` column in the queue table.
+Each comparison task requires a YAML config file, referenced by the `config_path` column in the queue table.
 
 ### Required Fields
 
@@ -113,5 +113,3 @@ columns:
 |---|---|---|
 | `ETL_DB_PASSWORD` | AppConfig (serve mode) | PostgreSQL password |
 | `ETL_ROOT` | PathSettings (serve mode) | Base path for `{ETL_ROOT}` token expansion |
-| `ETL_RE_OUTPUT` | PathSettings (serve mode) | Base path for `{ETL_RE_OUTPUT}` token expansion |
-| `ETL_RE_ROOT` | PathSettings (serve mode) | Base path for `{ETL_RE_ROOT}` token expansion |

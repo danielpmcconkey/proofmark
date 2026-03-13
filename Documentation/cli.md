@@ -1,46 +1,6 @@
 # CLI Reference
 
-Proofmark exposes two subcommands: `compare` and `serve`.
-
-## `proofmark compare`
-
-Run a one-off comparison between two data sources.
-
-```
-proofmark compare --config CONFIG --left LEFT --right RIGHT [--output OUTPUT]
-```
-
-| Flag | Required | Description |
-|---|---|---|
-| `--config` | Yes | Path to YAML comparison config file |
-| `--left` | Yes | LHS path -- file for CSV, directory for Parquet |
-| `--right` | Yes | RHS path -- same semantics as `--left` |
-| `--output` | No | Write JSON report to file instead of stdout |
-
-### Exit Codes
-
-| Code | Meaning |
-|---|---|
-| 0 | PASS -- equivalence met |
-| 1 | FAIL -- mismatches detected or threshold not met |
-| 2 | Error -- bad config, missing files, encoding errors, unexpected failures |
-
-### Examples
-
-```bash
-# Compare parquet directories, report to stdout
-proofmark compare \
-  --config jobs/daily_balances.yaml \
-  --left /data/original/daily_balances/ \
-  --right /data/rewrite/daily_balances/
-
-# Compare CSV files, write report to file
-proofmark compare \
-  --config jobs/transactions.yaml \
-  --left /data/original/transactions.csv \
-  --right /data/rewrite/transactions.csv \
-  --output report.json
-```
+Proofmark exposes a single subcommand: `serve`.
 
 ## `proofmark serve`
 
@@ -72,7 +32,6 @@ ETL_DB_PASSWORD=secret proofmark serve --settings /etc/proofmark/settings.yaml -
 ## Running as Module
 
 ```bash
-python -m proofmark compare --config ...
 python -m proofmark serve ...
 ```
 

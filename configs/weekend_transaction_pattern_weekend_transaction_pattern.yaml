@@ -1,0 +1,4 @@
+comparison_target: weekend_transaction_pattern_weekend_transaction_pattern
+reader: csv
+csv:
+  trailer_rows: 1

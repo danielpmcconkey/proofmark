@@ -1,0 +1,4 @@
+comparison_target: wealth_tier_analysis_wealth_tier_analysis
+reader: csv
+csv:
+  trailer_rows: 1

@@ -1,0 +1,4 @@
+comparison_target: overdraft_daily_summary_overdraft_daily_summary
+reader: csv
+csv:
+  trailer_rows: 1

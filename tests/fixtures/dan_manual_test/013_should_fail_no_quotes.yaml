@@ -1,4 +1,4 @@
-comparison_target: 013_should_pass_no_quotes
+comparison_target: 013_should_fail_no_quotes
 reader: csv
 csv:
   header_rows: 1

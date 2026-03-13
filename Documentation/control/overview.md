@@ -4,7 +4,7 @@ The `proofmark serve` command runs Proofmark as a long-lived service. Instead of
 
 ## Why
 
-The `compare` command is one-shot: one config, one LHS, one RHS. For an automated ETL pipeline that produces dozens of jobs per run, you need something that can process a batch of comparisons without per-invocation overhead. The queue runner provides that.
+An automated ETL pipeline produces dozens of jobs per run. The queue runner processes a batch of comparisons without per-invocation overhead.
 
 An external process (agent, cron job, ETL orchestrator) inserts rows into the `comparison_queue` table. Proofmark picks them up, runs the comparison pipeline, and stores the JSON report in the same row.
 

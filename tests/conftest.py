@@ -1,6 +1,4 @@
 """Shared fixtures, markers, helpers. [Test Architecture 1.7]"""
-import subprocess
-import sys
 from pathlib import Path
 
 import pytest
@@ -52,31 +50,5 @@ def run_comparison():
 
     def _run(config_path: Path, lhs_path: Path, rhs_path: Path) -> dict:
         return run(config_path, lhs_path, rhs_path)
-
-    return _run
-
-
-@pytest.fixture
-def run_cli(tmp_path):
-    """Invokes proofmark CLI as subprocess."""
-    def _run(
-        config_path: Path,
-        lhs_path: Path,
-        rhs_path: Path,
-        output_path: Path | None = None,
-        extra_args: list[str] | None = None,
-    ) -> tuple[int, str, str]:
-        cmd = [
-            sys.executable, "-m", "proofmark", "compare",
-            "--config", str(config_path),
-            "--left", str(lhs_path),
-            "--right", str(rhs_path),
-        ]
-        if output_path:
-            cmd.extend(["--output", str(output_path)])
-        if extra_args:
-            cmd.extend(extra_args)
-        result = subprocess.run(cmd, capture_output=True, text=True)
-        return result.returncode, result.stdout, result.stderr
 
     return _run

@@ -3,6 +3,7 @@
 import gc
 import json
 import logging
+import os
 import signal
 import threading
 import time
@@ -12,6 +13,13 @@ from proofmark.pipeline import run
 from proofmark.report import serialize_report
 
 logger = logging.getLogger("proofmark.queue")
+
+
+def _rss_mb():
+    """Current process RSS in MB, from /proc."""
+    with open(f"/proc/{os.getpid()}/statm") as f:
+        pages = int(f.read().split()[1])
+    return pages * os.sysconf("SC_PAGE_SIZE") / (1024 * 1024)
 
 INIT_SQL = """
 CREATE TABLE IF NOT EXISTS {table} (
@@ -53,7 +61,7 @@ def init_db(dsn, table):
         conn.close()
 
 
-def claim_task(dsn, table):
+def claim_task(conn, table):
     """Claim the next pending task atomically. Returns dict or None."""
     sql = f"""
     UPDATE {table}
@@ -67,25 +75,21 @@ def claim_task(dsn, table):
     )
     RETURNING task_id, config_path, lhs_path, rhs_path;
     """
-    conn = _connect(dsn)
-    try:
-        with conn.cursor() as cur:
-            cur.execute(sql)
-            row = cur.fetchone()
-            conn.commit()
-            if row:
-                return {
-                    "task_id": row[0],
-                    "config_path": row[1],
-                    "lhs_path": row[2],
-                    "rhs_path": row[3],
-                }
-        return None
-    finally:
-        conn.close()
+    with conn.cursor() as cur:
+        cur.execute(sql)
+        row = cur.fetchone()
+        conn.commit()
+        if row:
+            return {
+                "task_id": row[0],
+                "config_path": row[1],
+                "lhs_path": row[2],
+                "rhs_path": row[3],
+            }
+    return None
 
 
-def mark_succeeded(dsn, table, task_id, report):
+def mark_succeeded(conn, table, task_id, report):
     """Mark a task as Succeeded and store the report."""
     result = report.get("summary", {}).get("result", "UNKNOWN")
     report_json = json.dumps(report)
@@ -95,29 +99,21 @@ def mark_succeeded(dsn, table, task_id, report):
         result = %s, result_json = %s
     WHERE task_id = %s;
     """
-    conn = _connect(dsn)
-    try:
-        with conn.cursor() as cur:
-            cur.execute(sql, (result, report_json, task_id))
-        conn.commit()
-    finally:
-        conn.close()
+    with conn.cursor() as cur:
+        cur.execute(sql, (result, report_json, task_id))
+    conn.commit()
 
 
-def mark_failed(dsn, table, task_id, error_msg):
+def mark_failed(conn, table, task_id, error_msg):
     """Mark a task as Failed with an error message."""
     sql = f"""
     UPDATE {table}
     SET status = 'Failed', completed_at = NOW(), error_message = %s
     WHERE task_id = %s;
     """
-    conn = _connect(dsn)
-    try:
-        with conn.cursor() as cur:
-            cur.execute(sql, (error_msg, task_id))
-        conn.commit()
-    finally:
-        conn.close()
+    with conn.cursor() as cur:
+        cur.execute(sql, (error_msg, task_id))
+    conn.commit()
 
 
 class _ActivityTracker:
@@ -148,23 +144,44 @@ class _ActivityTracker:
             return time.monotonic() - self._last_idle_at
 
 
+def _reconnect(dsn, label, old_conn=None):
+    """Close old connection (if any) and open a fresh one."""
+    if old_conn is not None:
+        try:
+            old_conn.close()
+        except Exception:
+            pass
+    logger.info("[%s] connecting to database", label)
+    return _connect(dsn)
+
+
 def worker_loop(worker_id, dsn, table, poll_interval, stop_event,
-                activity=None, resolve_path=None):
+                activity=None, resolve_path=None, telemetry=False):
     """Worker loop: claim tasks, run comparisons, write results.
+
+    Each worker holds a single persistent database connection for its
+    lifetime, reconnecting automatically if the connection drops.
 
     resolve_path: optional callable that expands path tokens
                   (e.g. {ETL_ROOT}) to real values. Identity if None.
+    telemetry: if True, log RSS and GC stats after each task.
     """
     label = f"worker-{worker_id}"
     _resolve = resolve_path or (lambda p: p)
     logger.info("[%s] started", label)
 
+    conn = _reconnect(dsn, label)
+
     while not stop_event.is_set():
         task = None
         try:
-            task = claim_task(dsn, table)
+            task = claim_task(conn, table)
         except Exception:
-            logger.exception("[%s] error claiming task", label)
+            logger.exception("[%s] error claiming task, reconnecting", label)
+            try:
+                conn = _reconnect(dsn, label, conn)
+            except Exception:
+                logger.exception("[%s] reconnect failed", label)
             stop_event.wait(poll_interval)
             continue
 
@@ -185,11 +202,18 @@ def worker_loop(worker_id, dsn, table, poll_interval, stop_event,
                 Path(_resolve(task["lhs_path"])),
                 Path(_resolve(task["rhs_path"])),
             )
-            mark_succeeded(dsn, table, task_id, report)
+            mark_succeeded(conn, table, task_id, report)
             result = report.get("summary", {}).get("result", "?")
             logger.info("[%s] task %d completed: %s", label, task_id, result)
             del report
             gc.collect()
+            if telemetry:
+                gc_stats = gc.get_stats()
+                uncollectable = sum(s.get("uncollectable", 0) for s in gc_stats)
+                logger.info(
+                    "[%s] task %d | rss=%.1f MB | uncollectable=%d",
+                    label, task_id, _rss_mb(), uncollectable,
+                )
         except Exception as e:
             error_msg = f"{type(e).__name__}: {e}"
             logger.error("[%s] task %d failed: %s", label, task_id, error_msg)
@@ -197,16 +221,27 @@ def worker_loop(worker_id, dsn, table, poll_interval, stop_event,
                 del report
                 gc.collect()
             try:
-                mark_failed(dsn, table, task_id, error_msg)
+                mark_failed(conn, table, task_id, error_msg)
             except Exception:
                 logger.exception(
-                    "[%s] failed to write error for task %d", label, task_id
+                    "[%s] failed to write error for task %d, reconnecting",
+                    label, task_id,
                 )
+                try:
+                    conn = _reconnect(dsn, label, conn)
+                except Exception:
+                    logger.exception("[%s] reconnect failed", label)
         finally:
             if activity:
                 activity.task_ended()
 
         # No sleep between tasks — immediately check for next one
+
+    # Clean shutdown
+    try:
+        conn.close()
+    except Exception:
+        pass
 
 
 def serve(config, do_init=False):
@@ -219,6 +254,7 @@ def serve(config, do_init=False):
     workers = config.queue.workers
     poll_interval = config.queue.poll_interval_seconds
     idle_shutdown = config.queue.idle_shutdown_seconds
+    telemetry = config.queue.telemetry
 
     if do_init:
         init_db(dsn, table)
@@ -242,7 +278,11 @@ def serve(config, do_init=False):
         t = threading.Thread(
             target=worker_loop,
             args=(i, dsn, table, poll_interval, stop_event),
-            kwargs={"activity": activity, "resolve_path": config.paths.resolve},
+            kwargs={
+                "activity": activity,
+                "resolve_path": config.paths.resolve,
+                "telemetry": telemetry,
+            },
             daemon=True,
         )
         t.start()

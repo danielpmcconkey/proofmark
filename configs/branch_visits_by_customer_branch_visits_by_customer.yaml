@@ -1,0 +1,4 @@
+comparison_target: branch_visits_by_customer_branch_visits_by_customer
+reader: csv
+csv:
+  trailer_rows: 1

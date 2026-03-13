@@ -66,7 +66,7 @@ Each worker thread runs `worker_loop()` in an infinite loop:
 1. Try to claim a task.
 2. If no task: wait `poll_interval_seconds`, loop.
 3. If task claimed:
-   - Resolve path tokens (`{ETL_ROOT}`, `{ETL_RE_OUTPUT}`, `{ETL_RE_ROOT}`) via `PathSettings.resolve()`.
+   - Resolve path tokens (`{ETL_ROOT}`) via `PathSettings.resolve()`.
    - Run `pipeline.run()` with the resolved paths.
    - On success: `mark_succeeded()` stores the report.
    - On exception: `mark_failed()` stores the error message.
@@ -74,15 +74,17 @@ Each worker thread runs `worker_loop()` in an infinite loop:
 
 Workers are daemon threads. They stop when the `stop_event` is set.
 
+## Database Connections
+
+Each worker thread opens one persistent psycopg2 connection at startup and uses it for all database operations (claim, mark succeeded, mark failed). If a connection error occurs mid-loop, the worker reconnects automatically. The connection is closed on worker shutdown.
+
 ## `{TOKEN}` Path Expansion
 
 Queue task paths can contain tokens that are resolved at runtime:
 
 | Token | Source | Example |
 |---|---|---|
-| `{ETL_ROOT}` | `ETL_ROOT` env var | `/data/etl` |
-| `{ETL_RE_OUTPUT}` | `ETL_RE_OUTPUT` env var | `/data/rewrite/output` |
-| `{ETL_RE_ROOT}` | `ETL_RE_ROOT` env var | `/workspace` |
+| `{ETL_ROOT}` | `ETL_ROOT` env var | `/media/dan/fdrive/codeprojects/MockEtlFrameworkPython` |
 
 This allows the same queue rows to work across environments without changing paths.
 
@@ -90,14 +92,14 @@ This allows the same queue rows to work across environments without changing pat
 ```
 config_path = {ETL_ROOT}/configs/daily_balances.yaml
 lhs_path    = {ETL_ROOT}/output/daily_balances/
-rhs_path    = {ETL_RE_OUTPUT}/daily_balances/
+rhs_path    = {ETL_ROOT}/output/daily_balances/
 ```
 
-With `ETL_ROOT=/data/prod` and `ETL_RE_OUTPUT=/data/rewrite`, these resolve to:
+With `ETL_ROOT=/media/dan/fdrive/codeprojects/MockEtlFrameworkPython`, these resolve to:
 ```
-/data/prod/configs/daily_balances.yaml
-/data/prod/output/daily_balances/
-/data/rewrite/daily_balances/
+/media/dan/fdrive/codeprojects/MockEtlFrameworkPython/configs/daily_balances.yaml
+/media/dan/fdrive/codeprojects/MockEtlFrameworkPython/output/daily_balances/
+/media/dan/fdrive/codeprojects/MockEtlFrameworkPython/output/daily_balances/
 ```
 
 Resolution is done by `PathSettings.resolve()`, which is passed to `worker_loop` as the `resolve_path` callable. Simple string replacement -- no validation of the resulting paths.
@@ -130,7 +132,7 @@ INSERT INTO comparison_queue (config_path, lhs_path, rhs_path, job_key, date_key
 VALUES (
   '{ETL_ROOT}/configs/daily_balances.yaml',
   '{ETL_ROOT}/output/daily_balances/',
-  '{ETL_RE_OUTPUT}/daily_balances/',
+  '{ETL_ROOT}/output/daily_balances/',
   'daily_balances',
   '2026-01-15'
 );

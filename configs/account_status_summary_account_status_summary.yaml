@@ -1,0 +1,4 @@
+comparison_target: account_status_summary_account_status_summary
+reader: csv
+csv:
+  trailer_rows: 1

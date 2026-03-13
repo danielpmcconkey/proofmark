@@ -1,0 +1,4 @@
+comparison_target: transaction_category_summary_transaction_category_summary
+reader: csv
+csv:
+  trailer_rows: 1

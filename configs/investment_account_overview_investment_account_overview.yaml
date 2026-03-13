@@ -1,0 +1,4 @@
+comparison_target: investment_account_overview_investment_account_overview
+reader: csv
+csv:
+  trailer_rows: 1

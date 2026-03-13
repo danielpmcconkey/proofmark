@@ -1,0 +1,2 @@
+comparison_target: wire_transfer_daily_wire_transfer_daily
+reader: parquet

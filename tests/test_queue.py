@@ -25,7 +25,7 @@ DSN = os.environ.get(
     "PROOFMARK_TEST_DSN",
     f"host=localhost dbname=atc user=claude password={os.environ.get('ETL_DB_PASSWORD', '')}",
 )
-TEST_TABLE = "control.proofmark_test_queue"
+TEST_TABLE = "control._test_proofmark_queue"
 
 FIXTURES = Path(__file__).parent / "fixtures"
 CSV_CONFIG = str(FIXTURES / "configs" / "csv_simple.yaml")
@@ -163,7 +163,11 @@ class TestClaimTask:
 
     def test_claims_pending_task(self):
         tid = _insert_task(CSV_CONFIG, CSV_LHS, CSV_RHS)
-        task = claim_task(DSN, TEST_TABLE)
+        conn = psycopg2.connect(DSN)
+        try:
+            task = claim_task(conn, TEST_TABLE)
+        finally:
+            conn.close()
 
         assert task is not None
         assert task["task_id"] == tid
@@ -174,21 +178,33 @@ class TestClaimTask:
         assert row["status"] == "Running"
 
     def test_returns_none_when_empty(self):
-        task = claim_task(DSN, TEST_TABLE)
+        conn = psycopg2.connect(DSN)
+        try:
+            task = claim_task(conn, TEST_TABLE)
+        finally:
+            conn.close()
         assert task is None
 
     def test_skips_running_tasks(self):
         tid = _insert_task(CSV_CONFIG, CSV_LHS, CSV_RHS)
-        # Claim it first
-        claim_task(DSN, TEST_TABLE)
-        # Try to claim again — should get None
-        task = claim_task(DSN, TEST_TABLE)
+        conn = psycopg2.connect(DSN)
+        try:
+            # Claim it first
+            claim_task(conn, TEST_TABLE)
+            # Try to claim again — should get None
+            task = claim_task(conn, TEST_TABLE)
+        finally:
+            conn.close()
         assert task is None
 
     def test_fifo_order(self):
         tid1 = _insert_task(CSV_CONFIG, CSV_LHS, CSV_RHS)
         tid2 = _insert_task(CSV_CONFIG, CSV_LHS, CSV_RHS)
-        task = claim_task(DSN, TEST_TABLE)
+        conn = psycopg2.connect(DSN)
+        try:
+            task = claim_task(conn, TEST_TABLE)
+        finally:
+            conn.close()
         assert task["task_id"] == tid1
 
 
@@ -199,10 +215,13 @@ class TestMarkResults:
 
     def test_mark_succeeded(self):
         tid = _insert_task(CSV_CONFIG, CSV_LHS, CSV_RHS)
-        claim_task(DSN, TEST_TABLE)
-
-        report = {"summary": {"result": "PASS"}, "metadata": {"version": "0.1.0"}}
-        mark_succeeded(DSN, TEST_TABLE, tid, report)
+        conn = psycopg2.connect(DSN)
+        try:
+            claim_task(conn, TEST_TABLE)
+            report = {"summary": {"result": "PASS"}, "metadata": {"version": "0.1.0"}}
+            mark_succeeded(conn, TEST_TABLE, tid, report)
+        finally:
+            conn.close()
 
         row = _get_task(tid)
         assert row["status"] == "Succeeded"
@@ -211,9 +230,12 @@ class TestMarkResults:
 
     def test_mark_failed(self):
         tid = _insert_task(CSV_CONFIG, CSV_LHS, CSV_RHS)
-        claim_task(DSN, TEST_TABLE)
-
-        mark_failed(DSN, TEST_TABLE, tid, "ConfigError: bad config")
+        conn = psycopg2.connect(DSN)
+        try:
+            claim_task(conn, TEST_TABLE)
+            mark_failed(conn, TEST_TABLE, tid, "ConfigError: bad config")
+        finally:
+            conn.close()
 
         row = _get_task(tid)
         assert row["status"] == "Failed"

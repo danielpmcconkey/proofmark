@@ -1,0 +1,2 @@
+comparison_target: customer_address_deltas_customer_address_deltas
+reader: parquet

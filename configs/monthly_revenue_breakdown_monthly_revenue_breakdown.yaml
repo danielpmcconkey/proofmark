@@ -1,0 +1,4 @@
+comparison_target: monthly_revenue_breakdown_monthly_revenue_breakdown
+reader: csv
+csv:
+  trailer_rows: 1

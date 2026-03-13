@@ -1,0 +1,4 @@
+comparison_target: card_authorization_summary_card_authorization_summary
+reader: csv
+csv:
+  trailer_rows: 1

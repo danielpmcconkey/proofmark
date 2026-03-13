@@ -1,0 +1,2 @@
+comparison_target: customer_360_snapshot_customer_360_snapshot
+reader: parquet

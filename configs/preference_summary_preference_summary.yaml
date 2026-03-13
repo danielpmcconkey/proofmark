@@ -1,0 +1,4 @@
+comparison_target: preference_summary_preference_summary
+reader: csv
+csv:
+  trailer_rows: 1

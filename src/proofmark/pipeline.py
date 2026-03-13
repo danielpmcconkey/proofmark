@@ -123,13 +123,20 @@ def run(config_path: Path, lhs_path: Path, rhs_path: Path) -> dict:
         rhs_result.schema.column_names,
     )
 
+    # Capture what we still need, then free the reader results
+    schema = lhs_result.schema
+    non_excluded_columns = [
+        c for c in schema.column_names if c not in excluded_names
+    ]
+    del lhs_result, rhs_result
+
     # Step 6: Diff [FSD-5.10.7]
     diff_result = diff(lhs_hashed, rhs_hashed, config.fuzzy_columns)
 
+    # Free hashed rows — diff_result holds its own references to unmatched rows
+    del lhs_hashed, rhs_hashed
+
     # Step 7: Correlate [FSD-5.10.8]
-    non_excluded_columns = [
-        c for c in lhs_result.schema.column_names if c not in excluded_names
-    ]
     correlation = correlate(
         diff_result.all_unmatched_lhs,
         diff_result.all_unmatched_rhs,
@@ -167,7 +174,7 @@ def run(config_path: Path, lhs_path: Path, rhs_path: Path) -> dict:
         config_path=str(config_path),
         config=config,
         config_raw=config_raw,
-        schema=lhs_result.schema,
+        schema=schema,
         summary=summary,
         header_comparison=header_comparison,
         trailer_comparison=trailer_comparison,

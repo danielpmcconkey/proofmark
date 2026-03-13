@@ -2,15 +2,13 @@
 
 Proofmark is a Python tool for ETL output equivalence comparison. Given two sets of output files (CSV or Parquet), it determines whether they are equivalent -- accounting for excluded columns, fuzzy numeric tolerances, and configurable pass/fail thresholds.
 
-## Two Modes
+## Operation
 
-1. **`compare`** -- One-off CLI comparison. Takes a config YAML, left path, right path. Produces a JSON report on stdout (or to file). Exits 0 on PASS, 1 on FAIL, 2 on error.
-
-2. **`serve`** -- Long-lived queue runner. Polls a PostgreSQL `comparison_queue` table for pending tasks, runs comparisons with a pool of worker threads, writes results back to the database. Shuts down on signal or after an idle timeout.
+Proofmark runs as a long-lived queue runner via `proofmark serve`. It polls a PostgreSQL `comparison_queue` table for pending tasks, runs comparisons with a pool of worker threads, and writes results back to the database. Shuts down on signal or after an idle timeout.
 
 ## Pipeline Architecture
 
-The `compare` pipeline flows through these stages in order:
+The comparison pipeline flows through these stages in order:
 
 ```
 Config Load -> Read -> Schema Validate -> Header/Trailer Compare -> Hash -> Diff -> Correlate -> Report

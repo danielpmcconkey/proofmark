@@ -22,35 +22,14 @@ class PathSettings:
             self, "_etl_root",
             os.environ.get("ETL_ROOT", ""),
         )
-        object.__setattr__(
-            self, "_etl_re_output",
-            os.environ.get("ETL_RE_OUTPUT", ""),
-        )
-        object.__setattr__(
-            self, "_etl_re_root",
-            os.environ.get("ETL_RE_ROOT", ""),
-        )
 
     @property
     def etl_root(self) -> str:
         return self._etl_root
 
-    @property
-    def etl_re_output(self) -> str:
-        return self._etl_re_output
-
-    @property
-    def etl_re_root(self) -> str:
-        return self._etl_re_root
-
     def resolve(self, raw_path: str) -> str:
         """Replace path tokens with resolved values."""
-        return (
-            raw_path
-            .replace("{ETL_ROOT}", self._etl_root)
-            .replace("{ETL_RE_OUTPUT}", self._etl_re_output)
-            .replace("{ETL_RE_ROOT}", self._etl_re_root)
-        )
+        return raw_path.replace("{ETL_ROOT}", self._etl_root)
 
 
 @dataclass(frozen=True)
@@ -83,6 +62,7 @@ class QueueSettings:
     workers: int = 5
     poll_interval_seconds: int = 5
     idle_shutdown_seconds: int = 28800  # 8 hours
+    telemetry: bool = False
 
 
 @dataclass(frozen=True)
@@ -125,6 +105,7 @@ def load_app_config(settings_path: Path | None = None) -> AppConfig:
         workers=queue_raw.get("workers", 5),
         poll_interval_seconds=queue_raw.get("poll_interval_seconds", 5),
         idle_shutdown_seconds=queue_raw.get("idle_shutdown_seconds", 28800),
+        telemetry=queue_raw.get("telemetry", False),
     )
 
     return AppConfig(database=db, queue=queue)
