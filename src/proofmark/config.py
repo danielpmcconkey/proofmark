@@ -60,8 +60,6 @@ def load_config(config_path: Path) -> tuple[ComparisonConfig, dict]:
             raw = yaml.safe_load(f)
     except yaml.YAMLError as e:
         raise ConfigError(f"Invalid YAML: {e}") from e
-    except FileNotFoundError:
-        raise
 
     if not isinstance(raw, dict):
         raise ConfigError("Config file must contain a YAML mapping")

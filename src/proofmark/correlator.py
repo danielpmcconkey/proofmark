@@ -10,7 +10,7 @@ class CorrelatedPair:
     lhs_row: str
     rhs_row: str
     confidence: str
-    differing_columns: list[str]
+    differing_columns: tuple[str, ...]
 
 
 @dataclass(frozen=True)
@@ -82,7 +82,7 @@ def correlate(
             lhs_row=sorted_lhs[i].content,
             rhs_row=sorted_rhs[j].content,
             confidence="high",
-            differing_columns=differing,
+            differing_columns=tuple(differing),
         ))
         used_lhs.add(i)
         used_rhs.add(j)

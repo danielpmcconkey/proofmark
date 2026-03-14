@@ -2,7 +2,7 @@
 import json
 from dataclasses import dataclass, asdict
 from datetime import datetime, timezone
-from importlib.metadata import version
+from importlib.metadata import PackageNotFoundError, version
 
 from proofmark.config import ComparisonConfig
 from proofmark.correlator import CorrelationResult
@@ -40,7 +40,7 @@ ATTESTATION = (
 def _get_version() -> str:
     try:
         return version("proofmark")
-    except Exception:
+    except PackageNotFoundError:
         return "0.1.0"
 
 

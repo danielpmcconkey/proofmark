@@ -22,8 +22,8 @@ class HashGroupResult:
     rhs_count: int
     status: str
     matched_count: int
-    surplus_rows: list[UnmatchedRow]
-    fuzzy_failures: list[FuzzyFailure]
+    surplus_rows: tuple[UnmatchedRow, ...]
+    fuzzy_failures: tuple[FuzzyFailure, ...]
 
 
 @dataclass
@@ -154,8 +154,8 @@ def diff(
                 rhs_count=rhs_count,
                 status=status,
                 matched_count=matched_count,
-                surplus_rows=surplus_rows,
-                fuzzy_failures=group_fuzzy_failures,
+                surplus_rows=tuple(surplus_rows),
+                fuzzy_failures=tuple(group_fuzzy_failures),
             ))
 
         # [FSD-5.6.9]

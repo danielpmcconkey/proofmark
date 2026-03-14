@@ -123,7 +123,10 @@ def run(config_path: Path, lhs_path: Path, rhs_path: Path) -> dict:
         rhs_result.schema.column_names,
     )
 
-    # Capture what we still need, then free the reader results
+    # Capture what we still need, then free the reader results.
+    # Deliberate memory management: reader results hold every raw row in
+    # memory. For large dataset comparisons these can be hundreds of MB,
+    # so we eagerly delete them once hashing is done.
     schema = lhs_result.schema
     non_excluded_columns = [
         c for c in schema.column_names if c not in excluded_names
@@ -133,7 +136,9 @@ def run(config_path: Path, lhs_path: Path, rhs_path: Path) -> dict:
     # Step 6: Diff [FSD-5.10.7]
     diff_result = diff(lhs_hashed, rhs_hashed, config.fuzzy_columns)
 
-    # Free hashed rows — diff_result holds its own references to unmatched rows
+    # Deliberate memory management: hashed row lists can also be very
+    # large. diff_result holds its own references to unmatched rows, so
+    # we can safely drop the full hashed lists here.
     del lhs_hashed, rhs_hashed
 
     # Step 7: Correlate [FSD-5.10.8]

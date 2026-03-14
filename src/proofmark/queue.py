@@ -1,4 +1,5 @@
 """PostgreSQL-backed comparison queue runner."""
+from __future__ import annotations
 
 import gc
 import json
@@ -8,14 +9,16 @@ import signal
 import threading
 import time
 from pathlib import Path
+from typing import Any, Callable
 
+from proofmark.app_config import AppConfig
 from proofmark.pipeline import run
 from proofmark.report import serialize_report
 
 logger = logging.getLogger("proofmark.queue")
 
 
-def _rss_mb():
+def _rss_mb() -> float:
     """Current process RSS in MB, from /proc."""
     with open(f"/proc/{os.getpid()}/statm") as f:
         pages = int(f.read().split()[1])
@@ -42,12 +45,12 @@ CREATE INDEX IF NOT EXISTS idx_{safe}_keys ON {table} (job_key, date_key);
 """
 
 
-def _connect(dsn):
+def _connect(dsn: str) -> Any:
     import psycopg2
     return psycopg2.connect(dsn)
 
 
-def init_db(dsn, table):
+def init_db(dsn: str, table: str) -> None:
     """Create the queue table if it doesn't exist."""
     safe = table.replace(".", "_")
     sql = INIT_SQL.format(table=table, safe=safe)
@@ -61,7 +64,7 @@ def init_db(dsn, table):
         conn.close()
 
 
-def claim_task(conn, table):
+def claim_task(conn: Any, table: str) -> dict[str, Any] | None:
     """Claim the next pending task atomically. Returns dict or None."""
     sql = f"""
     UPDATE {table}
@@ -89,7 +92,7 @@ def claim_task(conn, table):
     return None
 
 
-def mark_succeeded(conn, table, task_id, report):
+def mark_succeeded(conn: Any, table: str, task_id: int, report: dict[str, Any]) -> None:
     """Mark a task as Succeeded and store the report."""
     result = report.get("summary", {}).get("result", "UNKNOWN")
     report_json = json.dumps(report)
@@ -104,7 +107,7 @@ def mark_succeeded(conn, table, task_id, report):
     conn.commit()
 
 
-def mark_failed(conn, table, task_id, error_msg):
+def mark_failed(conn: Any, table: str, task_id: int, error_msg: str) -> None:
     """Mark a task as Failed with an error message."""
     sql = f"""
     UPDATE {table}
@@ -144,7 +147,7 @@ class _ActivityTracker:
             return time.monotonic() - self._last_idle_at
 
 
-def _reconnect(dsn, label, old_conn=None):
+def _reconnect(dsn: str, label: str, old_conn: Any = None) -> Any:
     """Close old connection (if any) and open a fresh one."""
     if old_conn is not None:
         try:
@@ -155,8 +158,16 @@ def _reconnect(dsn, label, old_conn=None):
     return _connect(dsn)
 
 
-def worker_loop(worker_id, dsn, table, poll_interval, stop_event,
-                activity=None, resolve_path=None, telemetry=False):
+def worker_loop(
+    worker_id: int,
+    dsn: str,
+    table: str,
+    poll_interval: int,
+    stop_event: threading.Event,
+    activity: _ActivityTracker | None = None,
+    resolve_path: Callable[[str], str] | None = None,
+    telemetry: bool = False,
+) -> None:
     """Worker loop: claim tasks, run comparisons, write results.
 
     Each worker holds a single persistent database connection for its
@@ -205,6 +216,9 @@ def worker_loop(worker_id, dsn, table, poll_interval, stop_event,
             mark_succeeded(conn, table, task_id, report)
             result = report.get("summary", {}).get("result", "?")
             logger.info("[%s] task %d completed: %s", label, task_id, result)
+            # Deliberate memory management: reports for large dataset
+            # comparisons can be hundreds of MB. Eagerly delete and GC
+            # to keep RSS bounded between tasks.
             del report
             gc.collect()
             if telemetry:
@@ -218,6 +232,7 @@ def worker_loop(worker_id, dsn, table, poll_interval, stop_event,
             error_msg = f"{type(e).__name__}: {e}"
             logger.error("[%s] task %d failed: %s", label, task_id, error_msg)
             if report is not None:
+                # Same deliberate memory management as the success path.
                 del report
                 gc.collect()
             try:
@@ -244,7 +259,7 @@ def worker_loop(worker_id, dsn, table, poll_interval, stop_event,
         pass
 
 
-def serve(config, do_init=False):
+def serve(config: AppConfig, do_init: bool = False) -> None:
     """Start the queue runner using centralised AppConfig.
 
     Runs until SIGINT/SIGTERM or idle shutdown threshold is reached.
